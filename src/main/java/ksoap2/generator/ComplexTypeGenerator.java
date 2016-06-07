@@ -249,7 +249,7 @@ public final class ComplexTypeGenerator extends AbstractGenerator {
             writer.append("    }\n\n");
             writer.append("    public " + attribute.getType().getCanonicalName()
                     + " get" + getCapsChar(name.charAt(0)) + name.substring(1)
-                    + "(" + attribute.getType().getCanonicalName() + " " + name
+                    + "(" //+ attribute.getType().getCanonicalName() + " " + name
                     + ") {\n");
             writer.append("        return this." + name + ";\n");
             writer.append("    }\n\n");

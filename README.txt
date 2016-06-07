@@ -1,4 +1,4 @@
-Ksoap2 generating stub
+Ksoap2 stub generator with Gradle
 
 1. Requirements:
 - JDK 6

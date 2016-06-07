@@ -25,7 +25,7 @@ dependencies {
 }
 
 jar {
-    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it).matching { exclude '**/WSDL2.class' } }
 }
 
 ext {

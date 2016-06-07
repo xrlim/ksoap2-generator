@@ -1,0 +1,46 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+
+apply plugin: 'java'
+
+dependencies {
+    compile 'javax.xml:jaxrpc-api:1.1'
+    compile 'javax.mail:javax.mail-api:1.5.5'
+    compile 'javax.activation:activation:1.1'
+    compile 'commons-logging:commons-logging:1.1.1'
+    compile 'commons-discovery:commons-discovery:0.5'
+    compile 'org.apache.axis:axis:1.4'
+    compile 'com.martiansoftware:jsap:2.1'
+    compile 'wsdl4j:wsdl4j:1.6.2'
+    testCompile 'junit:junit:4.12'
+}
+
+jar {
+    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+}
+
+ext {
+    wsdlIP = '192.168.1.10'
+    wsdlPort = 8080
+    wsdlUrl = "http://$wsdlIP:$wsdlPort/powertool?singleWsdl"
+    wsdlUrl = "http://www.wsdl2code.com/SampleService.asmx?wsdl"
+    wsdlUrl = "file://$projectDir/wsdl/powertool.wsdl"
+    wsdlPath = file('src/main/resources/wsdl')
+    wsdl = 'powertool.wsdl'
+}
+
+task wsdl2ksoap(type: JavaExec) {
+    def generatedDir = "$buildDir/generated"
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'ksoap2.generator.Wsdl2Android'
+    args '-w', wsdlUrl, '-g', generatedDir
+}

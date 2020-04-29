@@ -29,11 +29,13 @@ package ksoap2.generator;
 
 import org.apache.axis.utils.bytecode.ParamReader;
 
+import javax.wsdl.Operation;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -59,12 +61,15 @@ public final class ServiceClientGenerator extends AbstractGenerator {
      */
     public static String HTTP_TRANSPORT = HTTP_TRANSPORT_J2ME;
 
+    private final List<Operation> operationList;
+
     private Class <?> stubClass;
 
-    public ServiceClientGenerator(final Class<?> clazz, final Class <?> stubClass, Writer writer, final String generatedFolder) {
+    public ServiceClientGenerator(final Class<?> clazz, final Class <?> stubClass, Writer writer, final String generatedFolder, List<Operation> operationList) {
 
         super(new ArrayList<String>(), clazz, writer, generatedFolder);
         this.stubClass = stubClass;
+        this.operationList = operationList;
     }
 
     /**
@@ -94,7 +99,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         Util.checkNull(stubClass);
         for (Method method : stubClass.getDeclaredMethods()) {
             if (hasMethod(clazz, method)) { // existed in the interface
-                new MethodGenerator().run(method, writer);
+                new MethodGenerator().run(method, writer, operationList);
             }
         }
     }
@@ -132,7 +137,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
      */
     private class MethodGenerator {
 
-        public void run(final Method method, Writer writer) throws GeneratorException {
+        public void run(final Method method, Writer writer, List<Operation> operationList) throws GeneratorException {
 
             Util.checkNull(method, writer);
             // Skip return type is void method
@@ -140,7 +145,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                 return;
             }
             writeMethodName(method, writer);
-            writeMethodContent(method, writer);
+            writeMethodContent(method, writer, operationList);
             writeDoCloseMethod(writer);
         }
 
@@ -190,7 +195,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
          * @param writer The writer.
          * @throws GeneratorExceMethodption The generation exception.
          */
-        private void writeMethodContent(final Method method, Writer writer) throws GeneratorException {
+        private void writeMethodContent(final Method method, Writer writer, List<Operation> operationList) throws GeneratorException {
 
 	        String namespace = "";
 	        try {
@@ -198,8 +203,15 @@ public final class ServiceClientGenerator extends AbstractGenerator {
 	        } catch (Exception e) {
 		        e.printStackTrace();
 	        }
+
+            Operation operation = operationList.stream().filter(op -> op.getName().compareToIgnoreCase(method.getName()) == 0).findFirst().orElse(null);
+            String methodName = method.getName();
+	        if(operation != null) {
+	            methodName = operation.getName();
+            }
+
 	        writer.append("        String nameSpace = \"" + namespace + "\";\n");
-            writer.append("        String methodName = \"" + method.getName() + "\";\n");
+            writer.append("        String methodName = \"" + methodName + "\";\n");
             writer.append("        String soapAction = nameSpace + methodName;\n");
 	        writer.append("        SoapObject _client = new SoapObject(nameSpace, methodName);\n\n");
             ParamReader pr;

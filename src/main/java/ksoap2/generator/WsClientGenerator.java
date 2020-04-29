@@ -84,7 +84,7 @@ public final class WsClientGenerator {
 	    }
 
         if (isService) {
-            new ServiceClientGenerator(clazz, stubClass, writer, generatedFolder).run();
+            new ServiceClientGenerator(clazz, stubClass, writer, generatedFolder, operationList).run();
         } else {
             new ComplexTypeGenerator(serviceClasses, clazz, writer, generatedFolder).run();
         }

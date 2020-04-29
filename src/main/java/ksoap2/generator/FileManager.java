@@ -86,7 +86,7 @@ public final class FileManager {
     /**
      * Gets all files and stores them to <tt>files</tt>.
      *
-     * @param files
+     * @param filenames
      *              The chain of file names.
      * @param file
      *              The file which contains itself and all the files and
@@ -298,6 +298,41 @@ public final class FileManager {
 	    createFolder(path.replace(simpleName, ""));
         saveFile(path, content);
     }
+
+    /**
+     * Creates the Result Kotlin class.
+     *
+     * @param serviceName
+     *              The service name.
+     * @param generatedFolder
+     *              The generated folder.
+     * @throws GeneratorException
+     *              The generation exception.
+     */
+    public static void copyResult(final String serviceName, final String generatedFolder) throws GeneratorException {
+
+        Util.checkNull(serviceName);
+        int index = serviceName.lastIndexOf('.');
+        String insertedPackageName = null;
+        String path = null;
+        String simpleName = "Result.kt";
+        if (index < 0) {
+            insertedPackageName = "";
+            path = generatedFolder + separatorChar + simpleName;
+        } else {
+            insertedPackageName = "package " + serviceName.substring(0, index) + ";\n";
+            path = generatedFolder + separatorChar + serviceName.substring(0,
+                    index).replace('.', separatorChar) + separatorChar
+                    + simpleName;
+        }
+        String packageName = "package ksoap2.generator;"; // defined in Conf
+        String content = getContent(FileManager.class.getResourceAsStream("Result.txt"));
+        content = content.replace(packageName, insertedPackageName);
+
+        createFolder(path.replace(simpleName, ""));
+        saveFile(path, content);
+    }
+
 
     /**
      *

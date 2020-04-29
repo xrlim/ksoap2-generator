@@ -142,6 +142,7 @@ public abstract class AbstractGenerator {
      */
     protected void writeClassDeclaration(final Class <?> clazz) throws GeneratorException {
         Util.checkNull(clazz);
+        writer.append("@SuppressWarnings(\"unchecked\")\n");
         writer.append("public final class " + clazz.getSimpleName() + " {\n\n");
     }
 

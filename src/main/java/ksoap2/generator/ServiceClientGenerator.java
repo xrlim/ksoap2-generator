@@ -82,6 +82,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
     protected void run() throws GeneratorException {
         super.run();
         FileManager.copyConf(stubClass.getName(), getGeneratedFolder());
+        FileManager.copyResult(stubClass.getName(), getGeneratedFolder());
     }
 
 	@Override
@@ -164,7 +165,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
          */
         private void writeMethodName(final Method method, Writer writer) throws GeneratorException {
 
-            writer.append("    " + getModifier(method.getModifiers()) + " " + method.getReturnType().getCanonicalName() + " " + method.getName() + "(");
+            writer.append("    " + getModifier(method.getModifiers()) + "Result<" + convertObjectType(method.getReturnType()).getCanonicalName() + "> " + method.getName() + "(");
             try {
                 ParamReader pr = new ParamReader(method.getDeclaringClass());
                 String [] params = pr.getParameterNames(method);
@@ -252,7 +253,8 @@ public final class ServiceClientGenerator extends AbstractGenerator {
             writer.append("        try {\n");
             writer.append("             _ret = ("+soapReturnType+") _envelope.getResponse();\n");
 	        writer.append("        } catch (SoapFault soapFault) {\n");
-	        writer.append("             convertToException(soapFault, _envelope);\n\n");
+	        writer.append("             convertToException(soapFault, _envelope);\n");
+            writer.append("             return new Result.Error(soapFault);\n");
 	        writer.append("        }\n\n");
             writeReturnValue(method, writer);
 	        //writer.append("        return new " + method.getReturnType().getCanonicalName() + "(_ret);\n");
@@ -369,26 +371,26 @@ public final class ServiceClientGenerator extends AbstractGenerator {
             Class <?> type = method.getReturnType();
             if (type.equals(void.class)) { // ignore the void type
             } else if(type.equals(String.class)) {
-                writer.append("        return _ret.toString();\n");
+                writer.append("        return new Result.Success<"+type.getCanonicalName()+">(_ret.toString());\n");
             } /*else if (isSupported(type)) { // type is supported
                 writer.append("        return (" + type.getCanonicalName() + ") _envelope.getResponse();\n");
             }*/ else if (type.isPrimitive()) { // primitive type
                 if (type.equals(boolean.class)) {
-                    writer.append("        return Boolean.parseBoolean(_ret.toString());\n");
+                    writer.append("        return new Result.Success<>(Boolean.parseBoolean(_ret.toString()));\n");
                 } else if (type.equals(byte.class)) {
-                    writer.append("        return Byte.parseByte(" + "_ret.toString());\n");
+                    writer.append("        return new Result.Success<>(Byte.parseByte(" + "_ret.toString()));\n");
                 } else if (type.equals(short.class)) {
-                    writer.append("        return Short.parseShort(" + "_ret.toString());\n");
+                    writer.append("        return new Result.Success<>(Short.parseShort(" + "_ret.toString()));\n");
                 } else if (type.equals(int.class)) {
-                    writer.append("        return Integer.parseInt(" + "_ret.toString());\n");
+                    writer.append("        return new Result.Success<>(Integer.parseInt(" + "_ret.toString()));\n");
                 } else if (type.equals(long.class)) {
-                    writer.append("        return Long.parseLong(" + "_ret.toString());\n");
+                    writer.append("        return new Result.Success<>(Long.parseLong(" + "_ret.toString()));\n");
                 } else if (type.equals(float.class)) {
-                    writer.append("        return Float.parseFloat(" + "_ret.toString());\n");
+                    writer.append("        return new Result.Success<>(Float.parseFloat(" + "_ret.toString()));\n");
                 } else if (type.equals(double.class)) {
-                    writer.append("        return Double.parseDouble(" + "_ret.toString());\n");
+                    writer.append("        return new Result.Success<>(Double.parseDouble(" + "_ret.toString()));\n");
                 } else { // char
-                    writer.append("        return _ret.toString().charAt(0);\n");
+                    writer.append("        return new Result.Success<"+type.getCanonicalName()+">(_ret.toString().charAt(0));\n");
                 }
             } else { // array or object extended on SoapObject
                 if (!type.isArray()) { // object extended on SoapObject
@@ -399,13 +401,14 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                     writer.append("        }\n");
                     writer.append("        return _returned;\n");
                 } else { // array
+                    writer.append("       if(_ret.getPropertyCount() == 0){\n");
+                    writer.append("       return new Result.Error(new Resources.NotFoundException(\""+ method.getName() +" didn't return any value.\"));\n");
+                    writer.append("       }\n");
                     writer.append("       " + type.getCanonicalName() + " returnArrayObject = new " + type.getCanonicalName().replace("[]","") + "[_ret.getPropertyCount()];\n");
                     writer.append("       for (int rowIndex = 0; rowIndex < _ret.getPropertyCount(); rowIndex++) {\n");
-                    writer.append("       PropertyInfo row = _ret.getPropertyInfo(rowIndex);\n");
-                    writer.append("\n");
                     writer.append("       returnArrayObject[rowIndex] = new "+type.getCanonicalName().replace("[]","")+"((SoapObject) _ret.getProperty(rowIndex));\n");
                     writer.append("       }\n");
-                    writer.append("       return returnArrayObject;\n");
+                    writer.append("       return new Result.Success<>(returnArrayObject);\n");
                 }
             }
         }
@@ -461,9 +464,31 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         }
     }
 
+    private Class<?> convertObjectType(Class<?> type){
+        if(type == boolean.class) {
+            return Boolean.class;
+        }else if(type == long.class){
+            return Long.class;
+        }else if(type == byte.class){
+            return Byte.class;
+        }else if(type == int.class){
+            return Integer.class;
+        }else if(type == short.class){
+            return Short.class;
+        }else if(type == double.class){
+            return Double.class;
+        }else if(type == float.class){
+            return Float.class;
+        }else{
+            return type;
+        }
+
+    }
+
     @Override
     protected void writeImportedClasses(Class<?> clazz, Writer writer) throws GeneratorException {
         Util.checkNull(clazz, writer);
+        writer.append("import android.content.res.Resources;\n");
         writer.append("import org.ksoap2.SoapEnvelope;\n");
 	    writer.append("import org.ksoap2.SoapFault;\n");
         writer.append("import org.ksoap2.serialization.SoapObject;\n");

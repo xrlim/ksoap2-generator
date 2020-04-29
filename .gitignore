@@ -2,3 +2,6 @@
 */*.iml
 axis/target/*
 *.svn*
+___tmp__com__ksoap
+___tmp__gen__ksoap
+build

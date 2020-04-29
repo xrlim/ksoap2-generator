@@ -29,11 +29,11 @@ jar {
 }
 
 ext {
-    wsdlIP = '192.168.1.10'
-    wsdlPort = 8080
-    wsdlUrl = "http://$wsdlIP:$wsdlPort/powertool?singleWsdl"
-    wsdlUrl = "http://www.wsdl2code.com/SampleService.asmx?wsdl"
-    wsdlUrl = "file://$projectDir/wsdl/powertool.wsdl"
+    wsdlIP = '192.168.1.236'
+    wsdlPort = 55555
+    wsdlUrl = "http://$wsdlIP:$wsdlPort/ws/ims-ws.asmx?wsdl"
+/*    wsdlUrl = "http://www.wsdl2code.com/SampleService.asmx?wsdl"
+    wsdlUrl = "file://$projectDir/wsdl/powertool.wsdl"*/
     wsdlPath = file('src/main/resources/wsdl')
     wsdl = 'powertool.wsdl'
 }

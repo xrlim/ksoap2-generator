@@ -1,38 +1,44 @@
 /**
- Ksoap2-generator-stub: the generating to generate web services client using
- ksoap2 (http://ksoap2.sourceforge.net/) in J2ME/CLDC 1.1 and Android
- (http://code.google.com/p/ksoap2-android/).
- 
- Copyright: Copyright (C) 2010
- Contact: kinhnc@gmail.com
-
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or any later version.
-
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- USA 
-
- Initial developer(s): Cong Kinh Nguyen.
- Contributor(s):
+ * Ksoap2-generator-stub: the generating to generate web services client using
+ * ksoap2 (http://ksoap2.sourceforge.net/) in J2ME/CLDC 1.1 and Android
+ * (http://code.google.com/p/ksoap2-android/).
+ * <p>
+ * Copyright: Copyright (C) 2010
+ * Contact: kinhnc@gmail.com
+ * <p>
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or any later version.
+ * <p>
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ * <p>
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ * USA
+ * <p>
+ * Initial developer(s): Cong Kinh Nguyen.
+ * Contributor(s):
  */
 
 package ksoap2.generator;
 
+import com.ibm.wsdl.PortTypeImpl;
+import com.ibm.wsdl.xml.WSDLReaderImpl;
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
 import com.martiansoftware.jsap.JSAPException;
 import com.martiansoftware.jsap.JSAPResult;
 import org.apache.axis.wsdl.WSDL2Java;
 
+import javax.wsdl.Definition;
+import javax.wsdl.Operation;
+import javax.wsdl.WSDLException;
+import javax.wsdl.xml.WSDLReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,7 +47,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.rmi.Remote;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -56,7 +65,7 @@ public final class Wsdl2J2me {
     /**
      * The arguments.
      */
-    private String [] args;
+    private String[] args;
 
     /**
      *
@@ -101,7 +110,7 @@ public final class Wsdl2J2me {
      * @param args
      *              The arguments.
      */
-    public Wsdl2J2me(String [] args) {
+    public Wsdl2J2me(String[] args) {
         this.args = args;
     }
 
@@ -124,7 +133,8 @@ public final class Wsdl2J2me {
         logger.info("break 2");
         String tmpJar = FileManager.createTempFile();
         CreatingJar.run(TEMP_COM_FOLDER, tmpJar);
-        generateCodeInJ2me(tmpJar);
+
+        generateCodeInJ2me(tmpJar, getWsdlMethodName());
         FileManager.removeFolder(TEMP_GEN_FOLDER);
         FileManager.removeFolder(TEMP_COM_FOLDER);
     }
@@ -170,7 +180,7 @@ public final class Wsdl2J2me {
      */
     private void generateCodeInJ2SE() {
         logger.info("generateCodeInJ2SE method");
-        String [] args = new String[] {"-o", TEMP_GEN_FOLDER, config.getString("wsdl")};
+        String[] args = new String[]{"-o", TEMP_GEN_FOLDER, config.getString("wsdl")};
         logger.info("arguments: -o " + TEMP_GEN_FOLDER + " " + config.getString("wsdl"));
         WSDL2Java.main(args);
     }
@@ -183,25 +193,25 @@ public final class Wsdl2J2me {
      * @throws GeneratorException
      *              The exception.
      */
-    private void generateCodeInJ2me(final String tmpJar) throws GeneratorException {
+    private void generateCodeInJ2me(final String tmpJar, List<Operation> operationList) throws GeneratorException {
         logger.info("generateCodeInJ2me method");
         ClassLoader prevCl = Thread.currentThread().getContextClassLoader();
         File file = new File(tmpJar);
         try {
             @SuppressWarnings("deprecation")
-            URLClassLoader loader = new URLClassLoader(new URL[] {file.toURL()}, prevCl);
+            URLClassLoader loader = new URLClassLoader(new URL[]{file.toURL()}, prevCl);
             Thread.currentThread().setContextClassLoader(loader);
             char separatorChar = java.io.File.separatorChar;
             String filetype = ".java";
-            List <String> names = FileManager.getFileNames(TEMP_GEN_FOLDER);
+            List<String> names = FileManager.getFileNames(TEMP_GEN_FOLDER);
             String serviceName = getServiceName(names, TEMP_GEN_FOLDER, loader);
             String generatedFolder = FileManager.getCanonicalPath(config.getString("generatedFolder"));
-            Class <?> serviceClass = loader.loadClass(serviceName);
-            Class <?> proxyClass = loader.loadClass(getProxyName(names, serviceClass, TEMP_GEN_FOLDER, loader));
+            Class<?> serviceClass = loader.loadClass(serviceName);
+            Class<?> proxyClass = loader.loadClass(getProxyName(names, serviceClass, TEMP_GEN_FOLDER, loader));
             logger.info("web services interface: " + serviceName);
             logger.info("web services proxy: " + proxyClass.getCanonicalName());
 
-	        for (String name : names) {
+            for (String name : names) {
                 int index = name.indexOf(TEMP_GEN_FOLDER);
                 if (index < 0) {
                     throw new GeneratorException();
@@ -209,18 +219,18 @@ public final class Wsdl2J2me {
                 String className = name.substring(index + TEMP_GEN_FOLDER.length() + 1).replace(separatorChar, '.');
                 // ignore .java
                 className = className.substring(0, className.length() - filetype.length());
-                Class <?> clazz = loader.loadClass(className);
+                Class<?> clazz = loader.loadClass(className);
                 if (className.equals(serviceName)) {
-	                new WsClientGenerator(names, clazz, proxyClass, true, generatedFolder).run();
+                    new WsClientGenerator(names, clazz, proxyClass, true, generatedFolder, operationList).run();
                 } else {
                     if (javax.xml.rpc.Service.class.isAssignableFrom(clazz)
                             || org.apache.axis.client.Stub.class.isAssignableFrom(clazz)
-		                    || org.apache.axis.client.Service.class.isAssignableFrom(clazz)
-                            ) {
+                            || org.apache.axis.client.Service.class.isAssignableFrom(clazz)
+                    ) {
                         continue;
                     }
                     logger.info("class name to generate code: " + className);
-	                new WsClientGenerator(names, clazz, proxyClass, false, generatedFolder).run();
+                    new WsClientGenerator(names, clazz, proxyClass, false, generatedFolder, operationList).run();
                 }
             }
         } catch (MalformedURLException e) {
@@ -228,64 +238,64 @@ public final class Wsdl2J2me {
         } catch (ClassNotFoundException e) {
             throw new GeneratorException(e);
         } catch (Exception e) {
-	        e.printStackTrace();
+            e.printStackTrace();
         } finally {
             Thread.currentThread().setContextClassLoader(prevCl);
         }
     }
 
-   private String getServiceName(final List <String> names, final String prefixPath, final ClassLoader loader) throws GeneratorException {
+    private String getServiceName(final List<String> names, final String prefixPath, final ClassLoader loader) throws GeneratorException {
 
-       String filetype = ".java";
-       String className = null;
-       for (String name : names) {
-           int index = name.indexOf(prefixPath);
-           if (index >= 0) {
-               className = name.substring(index + prefixPath.length() + 1).replace(separatorChar, '.');
-               int typeIndex = className.lastIndexOf(filetype);
-               if (typeIndex >= 0) {
-                   className = className.substring(0, typeIndex);
-                   Class<?> clazz;
-                   try {
-                       clazz = loader.loadClass(className);
-                       if ((clazz.isInterface()) && Remote.class.isAssignableFrom(clazz)) {
-                           break;
-                       }
-                   } catch (ClassNotFoundException e) {
-                   }
-               }
-           }
-       }
-       return className;
-   }
+        String filetype = ".java";
+        String className = null;
+        for (String name : names) {
+            int index = name.indexOf(prefixPath);
+            if (index >= 0) {
+                className = name.substring(index + prefixPath.length() + 1).replace(separatorChar, '.');
+                int typeIndex = className.lastIndexOf(filetype);
+                if (typeIndex >= 0) {
+                    className = className.substring(0, typeIndex);
+                    Class<?> clazz;
+                    try {
+                        clazz = loader.loadClass(className);
+                        if ((clazz.isInterface()) && Remote.class.isAssignableFrom(clazz)) {
+                            break;
+                        }
+                    } catch (ClassNotFoundException e) {
+                    }
+                }
+            }
+        }
+        return className;
+    }
 
-   private String getProxyName(final List <String> names, final Class <?> serviceClass, final String prefixPath, final ClassLoader loader) throws GeneratorException {
+    private String getProxyName(final List<String> names, final Class<?> serviceClass, final String prefixPath, final ClassLoader loader) throws GeneratorException {
 
-       String filetype = ".java";
-       String className = null;
-       for (String name : names) {
-           int index = name.indexOf(prefixPath);
-           if (index >= 0) {
-               className = name.substring(index + prefixPath.length() + 1).replace(separatorChar, '.');
-               int typeIndex = className.lastIndexOf(filetype);
-               if (typeIndex >= 0) {
-                   className = className.substring(0, typeIndex);
-                   if (className.equals(serviceClass.getName())) {
-                       continue;
-                   }
-                   Class<?> clazz;
-                   try {
-                       clazz = loader.loadClass(className);
-                       if (serviceClass.isAssignableFrom(clazz)) {
-                           break;
-                       }
-                   } catch (ClassNotFoundException e) {
-                   }
-               }
-           }
-       }
-       return className;
-   }
+        String filetype = ".java";
+        String className = null;
+        for (String name : names) {
+            int index = name.indexOf(prefixPath);
+            if (index >= 0) {
+                className = name.substring(index + prefixPath.length() + 1).replace(separatorChar, '.');
+                int typeIndex = className.lastIndexOf(filetype);
+                if (typeIndex >= 0) {
+                    className = className.substring(0, typeIndex);
+                    if (className.equals(serviceClass.getName())) {
+                        continue;
+                    }
+                    Class<?> clazz;
+                    try {
+                        clazz = loader.loadClass(className);
+                        if (serviceClass.isAssignableFrom(clazz)) {
+                            break;
+                        }
+                    } catch (ClassNotFoundException e) {
+                    }
+                }
+            }
+        }
+        return className;
+    }
 
     /**
      * Prints the usages in the program.
@@ -294,7 +304,7 @@ public final class Wsdl2J2me {
         System.err.println(jsap.getHelp());
     }
 
-    public static void main(String [] args) throws Exception {
+    public static void main(String[] args) throws Exception {
         ServiceClientGenerator.HTTP_TRANSPORT = ServiceClientGenerator.HTTP_TRANSPORT_J2ME;
         InputStream input = Wsdl2J2me.class.getResourceAsStream("logging.properties");
         if (input == null) {
@@ -312,4 +322,32 @@ public final class Wsdl2J2me {
         }
         new Wsdl2J2me(args).run();
     }
+
+
+    /**
+     *  Quirk: Get list of operation from WSDL  to replace axis method name, to fix method name case sensitivity issue.
+     * @return
+     */
+    private List<Operation> getWsdlMethodName() {
+        String wsdlUrl = args[1];
+        List<Operation> operationList = new ArrayList();
+        try {
+            WSDLReader reader = new WSDLReaderImpl();
+            //reader.setFeature("javax.wsdl.verbose", false);
+            //wsdl:operation name="HelloWorld"
+            Definition definition = reader.readWSDL(wsdlUrl);
+            Map<String, PortTypeImpl> defMap = definition.getAllPortTypes();
+            Collection<PortTypeImpl> collection = defMap.values();
+            for (PortTypeImpl portType : collection) {
+                operationList.addAll(portType.getOperations());
+            }
+
+            return operationList;
+        } catch (WSDLException exception) {
+            exception.printStackTrace();
+        }
+
+        return operationList;
+    }
+
 }

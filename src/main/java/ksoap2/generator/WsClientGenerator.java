@@ -27,6 +27,7 @@
 
 package ksoap2.generator;
 
+import javax.wsdl.Operation;
 import java.util.List;
 
 /**
@@ -37,6 +38,10 @@ import java.util.List;
  */
 public final class WsClientGenerator {
 
+    /**
+     * List of WSDL operation
+     */
+    private final List<Operation> operationList;
     /**
      * The class.
      */
@@ -57,12 +62,13 @@ public final class WsClientGenerator {
 
     private Writer writer = new Writer();
 
-    public WsClientGenerator(List<String> serviceClasses, final Class<?> clazz, final Class<?> stubClass, boolean isService, final String generatedFolder) {
+    public WsClientGenerator(List<String> serviceClasses, final Class<?> clazz, final Class<?> stubClass, boolean isService, final String generatedFolder, List<Operation> operationList) {
         this.clazz = clazz;
         this.stubClass = stubClass;
         this.isService = isService;
         this.generatedFolder = generatedFolder;
 	    this.serviceClasses = serviceClasses;
+	    this.operationList = operationList;
     }
 
     /**

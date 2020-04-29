@@ -135,6 +135,10 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         public void run(final Method method, Writer writer) throws GeneratorException {
 
             Util.checkNull(method, writer);
+            // Skip return type is void method
+            if(method.getReturnType() == void.class) {
+                return;
+            }
             writeMethodName(method, writer);
             writeMethodContent(method, writer);
             writeDoCloseMethod(writer);
@@ -184,7 +188,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
          *
          * @param method The method.
          * @param writer The writer.
-         * @throws GeneratorException The generation exception.
+         * @throws GeneratorExceMethodption The generation exception.
          */
         private void writeMethodContent(final Method method, Writer writer) throws GeneratorException {
 
@@ -194,9 +198,10 @@ public final class ServiceClientGenerator extends AbstractGenerator {
 	        } catch (Exception e) {
 		        e.printStackTrace();
 	        }
-
-	        writer.append("        String NAMESPACE = \"" + namespace + "\";\n");
-	        writer.append("        SoapObject _client = new SoapObject(NAMESPACE, \"" + method.getName() + "\");\n\n");
+	        writer.append("        String nameSpace = \"" + namespace + "\";\n");
+            writer.append("        String methodName = \"" + method.getName() + "\";\n");
+            writer.append("        String soapAction = nameSpace + methodName;\n");
+	        writer.append("        SoapObject _client = new SoapObject(nameSpace, methodName);\n\n");
             ParamReader pr;
             try {
                 Class <?> [] types = method.getParameterTypes();
@@ -206,7 +211,16 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                 if ((params != null) && (params.length != len)) {
                     throw new GeneratorException();
                 }
+                boolean isVectorDeclared = false;
                 for (int i = 0; i < len; i++) {
+                    if(types[i].isArray()) {
+                        if (!isVectorDeclared) {
+                            writer.append("        java.util.Vector _vector =  " + "new java.util.Vector();\n");
+                            isVectorDeclared = true;
+                        } else {
+                            writer.append("        _vector =  " + "new java.util.Vector();\n");
+                        }
+                    }
                     writeMethodContentForSerialization(params[i], types[i], writer);
                 }
             } catch (IOException e) {
@@ -220,16 +234,16 @@ public final class ServiceClientGenerator extends AbstractGenerator {
 	        writer.append("        _envelope.setAddAdornments(false);\n\n");
 
 	        writer.append("        " + HTTP_TRANSPORT + " _ht = new " + HTTP_TRANSPORT + "(" + "Configuration.getWsUrl());\n");
-            writer.append("        _ht.call(\"\", _envelope);\n\n");
+            writer.append("        _ht.call(soapAction, _envelope);\n\n");
            // writeReturnValue(method, writer);
 	        writer.append("        SoapObject _ret = null;\n");
 	        writer.append("        try {\n");
 	        writer.append("             _ret = (SoapObject) _envelope.getResponse();\n");
 	        writer.append("        } catch (SoapFault soapFault) {\n");
 	        writer.append("             convertToException(soapFault, _envelope);\n\n");
-	        writer.append("        };\n\n");
-
-	        writer.append("        return new " + method.getReturnType().getCanonicalName() + "(_ret);\n");
+	        writer.append("        }\n\n");
+            writeReturnValue(method, writer);
+	        //writer.append("        return new " + method.getReturnType().getCanonicalName() + "(_ret);\n");
         }
 
 	    private String getNameSpace(Class proxyClass, Method method) throws  Exception{
@@ -244,9 +258,9 @@ public final class ServiceClientGenerator extends AbstractGenerator {
 			    if(cachedSerQName instanceof QName){
 
 				    QName qName = ((QName) cachedSerQName);
-				    if(qName.getLocalPart().equals(method.getName())){
-					    return qName.getNamespaceURI();
-				    }
+				    //if(qName.getLocalPart().equals(method.getName())){
+                    return qName.getNamespaceURI();
+				    //}
 			    }
 		    }
 		    return "";
@@ -295,7 +309,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
          * @throws GeneratorException
          */
         private void writeMethodContentForSerialOfArray(final String param, final Class <?> type, Writer writer) throws GeneratorException {
-            writer.append("        java.util.Vector _vector =  " + "new java.util.Vector();\n");
+
             writer.append("        if (" + param + " != null) {\n");
             writer.append("            int _len = " + param + ".length;\n");
             writer.append("            for (int _i = 0; _i < _len; _i++) {\n");
@@ -323,7 +337,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                 writer.append("_vector.addElement(" + param + "[_i]);\n");
             } else {
                 // for array of other objects and array of more one dimension
-                
+                writer.append("_vector.addElement(" + param + "[_i]);\n");
             }
             writer.append("            }\n");
             writer.append("        }\n");
@@ -342,29 +356,30 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         private void writeReturnValue(final Method method, Writer writer) throws GeneratorException {
             Class <?> type = method.getReturnType();
             if (type.equals(void.class)) { // ignore the void type
-            } else if (isSupported(type)) { // type is supported
+            } else if(type.equals(String.class)) {
+                writer.append("        return _ret.toString();\n");
+            } /*else if (isSupported(type)) { // type is supported
                 writer.append("        return (" + type.getCanonicalName() + ") _envelope.getResponse();\n");
-            } else if (type.isPrimitive()) { // primitive type
+            }*/ else if (type.isPrimitive()) { // primitive type
                 if (type.equals(boolean.class)) {
-                    writer.append("        return _envelope.getResponse()" + ".toString().equals(\"true\");\n");
+                    writer.append("        return Boolean.parseBoolean(_ret.toString());\n");
                 } else if (type.equals(byte.class)) {
-                    writer.append("        return Byte.parseByte(" + "_envelope.getResponse().toString());\n");
+                    writer.append("        return Byte.parseByte(" + "_ret.toString());\n");
                 } else if (type.equals(short.class)) {
-                    writer.append("        return Short.parseShort(" + "_envelope.getResponse().toString());\n");
+                    writer.append("        return Short.parseShort(" + "_ret.toString());\n");
                 } else if (type.equals(int.class)) {
-                    writer.append("        return Integer.parseInt(" + "_envelope.getResponse().toString());\n");
+                    writer.append("        return Integer.parseInt(" + "_ret.toString());\n");
                 } else if (type.equals(long.class)) {
-                    writer.append("        return Long.parseLong(" + "_envelope.getResponse().toString());\n");
+                    writer.append("        return Long.parseLong(" + "_ret.toString());\n");
                 } else if (type.equals(float.class)) {
-                    writer.append("        return Float.parseFloat(" + "_envelope.getResponse().toString());\n");
+                    writer.append("        return Float.parseFloat(" + "_ret.toString());\n");
                 } else if (type.equals(double.class)) {
-                    writer.append("        return Double.parseDouble(" + "_envelope.getResponse().toString());\n");
+                    writer.append("        return Double.parseDouble(" + "_ret.toString());\n");
                 } else { // char
-                    writer.append("        return _envelope.getResponse()" + ".toString().charAt(0);\n");
+                    writer.append("        return _ret.toString().charAt(0);\n");
                 }
             } else { // array or object extended on SoapObject
                 if (!type.isArray()) { // object extended on SoapObject
-                    writer.append("        SoapObject _ret = (SoapObject) " + "_envelope.getResponse();\n");
                     writer.append("        int _len = _ret.getPropertyCount();\n");
                     writer.append("        " + type.getCanonicalName() + " _returned = new " + type.getCanonicalName() + "();\n");
                     writer.append("        for (int _i = 0; _i < _len; _i++) {\n");
@@ -372,7 +387,13 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                     writer.append("        }\n");
                     writer.append("        return _returned;\n");
                 } else { // array
-                    
+                    writer.append("       " + type.getCanonicalName() + " returnArrayObject = new " + type.getCanonicalName().replace("[]","") + "[_ret.getPropertyCount()];\n");
+                    writer.append("       for (int rowIndex = 0; rowIndex < _ret.getPropertyCount(); rowIndex++) {\n");
+                    writer.append("       PropertyInfo row = _ret.getPropertyInfo(rowIndex);\n");
+                    writer.append("\n");
+                    writer.append("       returnArrayObject[rowIndex] = new "+type.getCanonicalName().replace("[]","")+"((SoapObject) _ret.getProperty(rowIndex));\n");
+                    writer.append("       }\n");
+                    writer.append("       return returnArrayObject;\n");
                 }
             }
         }

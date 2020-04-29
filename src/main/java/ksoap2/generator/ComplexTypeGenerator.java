@@ -365,7 +365,7 @@ public final class ComplexTypeGenerator extends AbstractGenerator {
 
 
 		            } else {
-			            writer.append("             case " + index + ": " + attribute.getName() + " = " + attribute.getType().getCanonicalName() + ".valueOf(__obj.toString()); break;\n");
+			            writer.append("             case " + index + ": " + attribute.getName() + " = __obj.toString().equals(\"anyType{}\") ? null : " + attribute.getType().getCanonicalName() + ".valueOf(__obj.toString()); break;\n");
 		            }
 	            }
             } else { // array

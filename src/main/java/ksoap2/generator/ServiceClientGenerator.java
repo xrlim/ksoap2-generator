@@ -193,10 +193,9 @@ public final class ServiceClientGenerator extends AbstractGenerator {
          *
          * @param method The method.
          * @param writer The writer.
-         * @throws GeneratorExceMethodption The generation exception.
+         * @throws GeneratorException The generation exception.
          */
         private void writeMethodContent(final Method method, Writer writer, List<Operation> operationList) throws GeneratorException {
-
 	        String namespace = "";
 	        try {
 		        namespace = getNameSpace(stubClass, method);
@@ -248,9 +247,10 @@ public final class ServiceClientGenerator extends AbstractGenerator {
 	        writer.append("        " + HTTP_TRANSPORT + " _ht = new " + HTTP_TRANSPORT + "(" + "Configuration.getWsUrl());\n");
             writer.append("        _ht.call(soapAction, _envelope);\n\n");
            // writeReturnValue(method, writer);
-	        writer.append("        SoapObject _ret = null;\n");
-	        writer.append("        try {\n");
-	        writer.append("             _ret = (SoapObject) _envelope.getResponse();\n");
+            String soapReturnType = writeConvertSoapReturnType(method);
+            writer.append("        "+soapReturnType+" _ret = null;\n");
+            writer.append("        try {\n");
+            writer.append("             _ret = ("+soapReturnType+") _envelope.getResponse();\n");
 	        writer.append("        } catch (SoapFault soapFault) {\n");
 	        writer.append("             convertToException(soapFault, _envelope);\n\n");
 	        writer.append("        }\n\n");
@@ -411,6 +411,21 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         }
 
         /**
+         * Determine is soap object or soap primitive
+         * @param method
+         */
+        private String writeConvertSoapReturnType(final Method method){
+            Class <?> type = method.getReturnType();
+            String soapReturnType = "SoapObject";
+            if (type.equals(void.class)) { // ignore the void type
+            } else if (type.isPrimitive() || type.equals(String.class)){
+                return "SoapPrimitive";
+            }
+
+            return soapReturnType;
+        }
+
+        /**
          *
          * @param type
          *              The class.
@@ -452,6 +467,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         writer.append("import org.ksoap2.SoapEnvelope;\n");
 	    writer.append("import org.ksoap2.SoapFault;\n");
         writer.append("import org.ksoap2.serialization.SoapObject;\n");
+        writer.append("import org.ksoap2.serialization.SoapPrimitive;\n");
         writer.append("import org.ksoap2.serialization.SoapSerializationEnvelope;\n");
         writer.append("import org.ksoap2.transport." + HTTP_TRANSPORT + ";\n");
 	    writer.append("import org.ksoap2.serialization.PropertyInfo;\n");

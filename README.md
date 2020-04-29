@@ -32,6 +32,8 @@ Please execute the command as the following:
       $ java -cp ksoap2-generating-stub-0.1-SNAPSHOT-jar-with-dependencies.jar;"%JAVA_HOME%\lib\tools.jar" ksoap2.generator.Wsdl2J2me -w "http://localhost:8080/Ws2Ksoap/services/HelloWorld?wsdl" -g .\generated
    + For Android
       $ java -cp ksoap2-generating-stub-0.1-SNAPSHOT-jar-with-dependencies.jar;"%JAVA_HOME%\lib\tools.jar" ksoap2.generator.Wsdl2Android -w "http://localhost:8080/Ws2Ksoap/services/HelloWorld?wsdl" -g .\generated
+      
+ 
 
 The parameters:
  -w 	specifies the URL of the WSDL document.

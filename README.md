@@ -19,25 +19,9 @@ Ksoap2 stub generator with Gradle
   array of them.
 
 3. How to generate web services client running on J2ME and Android using ksoap2?
-
-Please execute the command as the following:
-- In Linux:
-   + For J2ME:
-      $ java -cp ksoap2-generating-stub-0.1-SNAPSHOT-jar-with-dependencies.jar:$JAVA_HOME/lib/tools.jar ksoap2.generator.Wsdl2J2me -w "http://localhost:8080/Ws2Ksoap/services/HelloWorld?wsdl" -g ./generated
-   + For Android:
-      $ java -cp ksoap2-generating-stub-0.1-SNAPSHOT-jar-with-dependencies.jar:$JAVA_HOME/lib/tools.jar ksoap2.generator.Wsdl2Android -w "http://localhost:8080/Ws2Ksoap/services/HelloWorld?wsdl" -g ./generated
-
-- In Windows:
-   + For J2ME:
-      $ java -cp ksoap2-generating-stub-0.1-SNAPSHOT-jar-with-dependencies.jar;"%JAVA_HOME%\lib\tools.jar" ksoap2.generator.Wsdl2J2me -w "http://localhost:8080/Ws2Ksoap/services/HelloWorld?wsdl" -g .\generated
-   + For Android
-      $ java -cp ksoap2-generating-stub-0.1-SNAPSHOT-jar-with-dependencies.jar;"%JAVA_HOME%\lib\tools.jar" ksoap2.generator.Wsdl2Android -w "http://localhost:8080/Ws2Ksoap/services/HelloWorld?wsdl" -g .\generated
-      
- 
-
-The parameters:
- -w 	specifies the URL of the WSDL document.
- [-g]	specifies the generated folder to store generated code.
+  a. Configure the task wsdl2ksoap in build.gradle.
+  b. Just run the Gradle with gradlew or intelliJ
+  c. Grab the code in build/generated
 
 4. How to use generated code?
 - Before invoking web services from J2ME or Android, you just need to configure

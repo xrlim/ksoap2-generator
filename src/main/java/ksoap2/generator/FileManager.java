@@ -231,6 +231,35 @@ public final class FileManager {
      * @throws GeneratorException
      *              The generation exception.
      */
+    public static void createFileInJ2me(final Class <?> clazz, final Writer writer, final String generatedFolder, final String className) throws GeneratorException {
+        Util.checkNull(clazz, writer, generatedFolder);
+        String name = clazz.getName();
+        int index = name.lastIndexOf('.');
+        if (index < 0) {
+            createFolder(generatedFolder);
+            saveFile(generatedFolder + separatorChar + className + ".java",
+                    writer);
+        } else {
+            String packageName = name.substring(0, index).replace('.',
+                    separatorChar);
+            String dir = generatedFolder + separatorChar + packageName;
+            createFolder(dir);
+            saveFile(dir + separatorChar + className + ".java", writer);
+        }
+    }
+
+    /**
+     * Creates file in J2ME.
+     *
+     * @param clazz
+     *              The class.
+     * @param writer
+     *              The writer.
+     * @param generatedFolder
+     *              The generated folder.
+     * @throws GeneratorException
+     *              The generation exception.
+     */
     public static void createFileInJ2me(final Class <?> clazz, final Writer writer, final String generatedFolder) throws GeneratorException {
         Util.checkNull(clazz, writer, generatedFolder);
         String name = clazz.getName();
@@ -248,6 +277,67 @@ public final class FileManager {
             saveFile(dir + separatorChar + simpleName + ".java", writer);
         }
     }
+
+
+    /**
+     * Creates file in Kotlin.
+     *
+     * @param clazz
+     *              The class.
+     * @param writer
+     *              The writer.
+     * @param generatedFolder
+     *              The generated folder.
+     * @throws GeneratorException
+     *              The generation exception.
+     */
+    public static void createFileInKotlin(final Class <?> clazz, final Writer writer, final String generatedFolder, final String className) throws GeneratorException {
+        Util.checkNull(clazz, writer, generatedFolder);
+        String name = clazz.getName();
+        int index = name.lastIndexOf('.');
+        if (index < 0) {
+            createFolder(generatedFolder);
+            saveFile(generatedFolder + separatorChar + className + ".java",
+                    writer);
+        } else {
+            String packageName = name.substring(0, index).replace('.',
+                    separatorChar);
+            String dir = generatedFolder + separatorChar + packageName;
+            createFolder(dir);
+            saveFile(dir + separatorChar + className + ".kt", writer);
+        }
+    }
+
+    /**
+     * Creates file in Kotlin.
+     *
+     * @param clazz
+     *              The class.
+     * @param writer
+     *              The writer.
+     * @param generatedFolder
+     *              The generated folder.
+     * @throws GeneratorException
+     *              The generation exception.
+     */
+    public static void createFileInKotlin(final Class <?> clazz, final Writer writer, final String generatedFolder) throws GeneratorException {
+        Util.checkNull(clazz, writer, generatedFolder);
+        String name = clazz.getName();
+        String simpleName = clazz.getSimpleName();
+        int index = name.lastIndexOf('.');
+        if (index < 0) {
+            createFolder(generatedFolder);
+            saveFile(generatedFolder + separatorChar + simpleName + ".java",
+                    writer);
+        } else {
+            String packageName = name.substring(0, index).replace('.',
+                    separatorChar);
+            String dir = generatedFolder + separatorChar + packageName;
+            createFolder(dir);
+            saveFile(dir + separatorChar + simpleName + ".kt", writer);
+        }
+    }
+
 
     /**
      * Creates temp file.

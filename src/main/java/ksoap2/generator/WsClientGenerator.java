@@ -85,6 +85,7 @@ public final class WsClientGenerator {
 
         if (isService) {
             new ServiceClientGenerator(clazz, stubClass, writer, generatedFolder, operationList).run();
+            new KotlinCoroutineWrapperGenerator(clazz, stubClass, writer, generatedFolder).run();
         } else {
             new ComplexTypeGenerator(serviceClasses, clazz, writer, generatedFolder).run();
         }

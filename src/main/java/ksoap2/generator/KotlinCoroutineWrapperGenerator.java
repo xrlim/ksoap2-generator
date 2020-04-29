@@ -1,28 +1,28 @@
 /**
- Ksoap2-generator-stub: the generating to generate web services client using
- ksoap2 (http://ksoap2.sourceforge.net/) in J2ME/CLDC 1.1 and Android
- (http://code.google.com/p/ksoap2-android/).
- 
- Copyright: Copyright (C) 2010
- Contact: kinhnc@gmail.com
-
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or any later version.
-
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- USA 
-
- Initial developer(s): Cong Kinh Nguyen.
- Contributor(s):
+ * Ksoap2-generator-stub: the generating to generate web services client using
+ * ksoap2 (http://ksoap2.sourceforge.net/) in J2ME/CLDC 1.1 and Android
+ * (http://code.google.com/p/ksoap2-android/).
+ * <p>
+ * Copyright: Copyright (C) 2010
+ * Contact: kinhnc@gmail.com
+ * <p>
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or any later version.
+ * <p>
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ * <p>
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ * USA
+ * <p>
+ * Initial developer(s): Cong Kinh Nguyen.
+ * Contributor(s):
  */
 
 package ksoap2.generator;
@@ -42,9 +42,8 @@ import java.util.Vector;
  * Class to generate Web services client in J2ME based on Ksoap.
  *
  * @author Cong Kinh Nguyen
- *
  */
-public final class ServiceClientGenerator extends AbstractGenerator {
+public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
 
     /**
      * For J2ME.
@@ -61,36 +60,44 @@ public final class ServiceClientGenerator extends AbstractGenerator {
      */
     public static String HTTP_TRANSPORT = HTTP_TRANSPORT_J2ME;
 
-    private final List<Operation> operationList;
+    private Class<?> stubClass;
 
-    private Class <?> stubClass;
+    private String stubClientName;
 
-    public ServiceClientGenerator(final Class<?> clazz, final Class <?> stubClass, Writer writer, final String generatedFolder, List<Operation> operationList) {
-
+    public KotlinCoroutineWrapperGenerator(final Class<?> clazz, final Class<?> stubClass, Writer writer, final String generatedFolder) {
         super(new ArrayList<String>(), clazz, writer, generatedFolder);
         this.stubClass = stubClass;
-        this.operationList = operationList;
+        className = clazz.getSimpleName() + "Async";
+        isKotlin = true;
+        stubClientName = clazz.getSimpleName().substring(0, 1).toLowerCase() + clazz.getSimpleName().substring(1);
     }
 
     /**
      * Runs this method to generate classes in J2ME based on them in J2SE.
      *
-     * @throws GeneratorException
-     *              The generation exception.
+     * @throws GeneratorException The generation exception.
      * @see AbstractGenerator#run()
      */
     protected void run() throws GeneratorException {
         super.run();
-        FileManager.copyConf(stubClass.getName(), getGeneratedFolder());
-        FileManager.copyResult(stubClass.getName(), getGeneratedFolder());
     }
 
-	@Override
-	protected void writeCustomMethods(Writer writer) {
-		writeExceptionParseMethod(writer);
-	}
+    @Override
+    protected void writeCustomMethods(Writer writer) {
+        writeExceptionParseMethod(writer);
+        writeInit(writer);
+    }
 
-	/**
+    private void writeInit(Writer writer) {
+        writer.append("    private val _sessionManager: SessionManager = sessionManager\n");
+        writer.append("    private val " + stubClientName + ": " + getClazz().getSimpleName() + " = " + getClazz().getSimpleName() + "()\n\n");
+        writer.append("    init {\n");
+        writer.append("        val wsURL: String = \"http://\" + _sessionManager.getIpAddress() + \":\" + _sessionManager.getPort() + \"/ws/ims-ws.asmx\"\n");
+        writer.append("        Configuration.setConfiguration(wsURL);\n");
+        writer.append("    }\n\n");
+    }
+
+    /**
      * @see AbstractGenerator#writeClass(Class)
      */
     @Override
@@ -100,7 +107,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         Util.checkNull(stubClass);
         for (Method method : stubClass.getDeclaredMethods()) {
             if (hasMethod(clazz, method)) { // existed in the interface
-                new MethodGenerator().run(method, writer, operationList);
+                new MethodGenerator().run(clazz, method, writer);
             }
         }
     }
@@ -108,14 +115,12 @@ public final class ServiceClientGenerator extends AbstractGenerator {
     /**
      * Checks if the <tt>method</tt> was declared in the <tt>clazz</tt>.
      *
-     * @param clazz
-     *              The class.
-     * @param method
-     *              The method.
+     * @param clazz  The class.
+     * @param method The method.
      * @return <tt>true</tt> if the <tt>method</tt> was declared in the
      * <tt>clazz</tt>, and <tt>false</tt> otherwise.
      */
-    private boolean hasMethod(final Class <?> clazz, final Method method) {
+    private boolean hasMethod(final Class<?> clazz, final Method method) {
         for (Method m : clazz.getDeclaredMethods()) {
             if (m.getName().equals(method.getName())) {
                 return true; // not necessary to check the ParaTypes.
@@ -124,69 +129,100 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         return false;
     }
 
-	private void writeExceptionParseMethod(Writer writer) {
-		writer.append("     public void convertToException(org.ksoap2.SoapFault fault, SoapSerializationEnvelope envelope) throws java.lang.Exception {\n");
-		writer.append("         //TODO: meed to implement\n");
-		writer.append("    };\n\n");
-	}
+    private void writeExceptionParseMethod(Writer writer) {
+
+    }
 
     /**
      * Private class to generate the method at client for each web service.
      *
      * @author Cong Kinh Nguyen
-     *
      */
     private class MethodGenerator {
 
-        public void run(final Method method, Writer writer, List<Operation> operationList) throws GeneratorException {
+        public void run(final Class<?> clazz, final Method method, Writer writer) throws GeneratorException {
 
             Util.checkNull(method, writer);
             // Skip return type is void method
-            if(method.getReturnType() == void.class) {
+            if (method.getReturnType() == void.class) {
                 return;
             }
             writeMethodName(method, writer);
-            writeMethodContent(method, writer, operationList);
+            writeMethodContent(clazz, method, writer);
             writeDoCloseMethod(writer);
         }
 
-	    /**
+        /**
          * Declares the method, for example
          * <pre>
          *     <code>public void test(String input) {</code>.
-         * </pre> 
+         * </pre>
          *
-         * @param method
-         *              The method.
-         * @param writer
-         *              The writer.
-         * @throws GeneratorException
-         *              The generation exception.
+         * @param method The method.
+         * @param writer The writer.
+         * @throws GeneratorException The generation exception.
          */
         private void writeMethodName(final Method method, Writer writer) throws GeneratorException {
 
-            writer.append("    " + getModifier(method.getModifiers()) + "Result<" + convertObjectType(method.getReturnType()).getCanonicalName() + "> " + method.getName() + "(");
+            //suspend fun getUserByUsernamePassword(userName: String, password: String) : Result<Array<SysUserS>>? {
+            writer.append("    suspend fun " + method.getName() + "(");
+            writeMethodParameters(method, writer, true);
+
+            if (method.getReturnType().isArray()) {
+                writer.append("): " + "Result<Array<" + method.getReturnType().getCanonicalName().replace("[]", "") + ">>? {\n");
+            } else {
+                writer.append("): " + "Result<" + convertObjectType(method.getReturnType()).getSimpleName() + ">? {\n");
+            }
+        }
+
+
+        /**
+         * write the parameters for method
+         *
+         * @param method
+         * @param writer
+         * @param includeDataType
+         * @throws GeneratorException
+         */
+        private void writeMethodParameters(final Method method, Writer writer, boolean includeDataType) throws GeneratorException {
             try {
                 ParamReader pr = new ParamReader(method.getDeclaringClass());
-                String [] params = pr.getParameterNames(method);
+                String[] params = pr.getParameterNames(method);
                 if (params != null) {
-                    Class <?> [] paramTypes = method.getParameterTypes();
+                    Class<?>[] paramTypes = method.getParameterTypes();
                     int len = params.length;
                     if (len != paramTypes.length) {
                         throw new GeneratorException();
                     }
                     for (int i = 0; i < len; i++) {
-                        if (i == 0) {
-                            writer.append(paramTypes[i].getCanonicalName() + " " + params[i]);
+                        if (includeDataType) {
+                            String dataType = convertObjectType(paramTypes[i]).getSimpleName();
+                            if (paramTypes[i].isArray()) {
+                                dataType = "Array<" + convertObjectType(paramTypes[i]).getSimpleName().replace("[]", "") + ">";
+                            }
+
+                            if (i == 0) {
+                                writer.append(params[i] + ": " + dataType);
+                            } else {
+                                writer.append(", " + params[i] + ": " + dataType);
+                            }
                         } else {
-                            writer.append(", " + paramTypes[i].getCanonicalName() + " " + params[i]);
+                            String conversionType = "";
+                            if (paramTypes[i].isArray() && paramTypes[i].getComponentType().isPrimitive()) {
+                                conversionType = ".to" + convertObjectType(paramTypes[i]).getSimpleName().replace("[]", "") + "Array()";
+                            }
+
+                            if (i == 0) {
+                                writer.append(params[i] + conversionType);
+                            } else {
+                                writer.append(", " + params[i] + conversionType);
+                            }
                         }
                     }
                 }
             } catch (IOException e) {
                 throw new GeneratorException(e);
             }
-            writer.append(") throws java.lang.Exception {\n");
         }
 
         /**
@@ -196,99 +232,50 @@ public final class ServiceClientGenerator extends AbstractGenerator {
          * @param writer The writer.
          * @throws GeneratorException The generation exception.
          */
-        private void writeMethodContent(final Method method, Writer writer, List<Operation> operationList) throws GeneratorException {
-	        String namespace = "";
-	        try {
-		        namespace = getNameSpace(stubClass, method);
-	        } catch (Exception e) {
-		        e.printStackTrace();
-	        }
-
-            Operation operation = operationList.stream().filter(op -> op.getName().compareToIgnoreCase(method.getName()) == 0).findFirst().orElse(null);
-            String methodName = method.getName();
-	        if(operation != null) {
-	            methodName = operation.getName();
-            }
-
-	        writer.append("        String nameSpace = \"" + namespace + "\";\n");
-            writer.append("        String methodName = \"" + methodName + "\";\n");
-            writer.append("        String soapAction = nameSpace + methodName;\n");
-	        writer.append("        SoapObject _client = new SoapObject(nameSpace, methodName);\n\n");
-            ParamReader pr;
+        private void writeMethodContent(final Class<?> clazz, final Method method, Writer writer) throws GeneratorException {
+            String namespace = "";
             try {
-                Class <?> [] types = method.getParameterTypes();
-                pr = new ParamReader(method.getDeclaringClass());
-                String [] params = pr.getParameterNames(method);
-                int len = types.length;
-                if ((params != null) && (params.length != len)) {
-                    throw new GeneratorException();
-                }
-                boolean isVectorDeclared = false;
-                for (int i = 0; i < len; i++) {
-                    if(types[i].isArray()) {
-                        if (!isVectorDeclared) {
-                            writer.append("        java.util.Vector _vector =  " + "new java.util.Vector();\n");
-                            isVectorDeclared = true;
-                        } else {
-                            writer.append("        _vector =  " + "new java.util.Vector();\n");
-                        }
-                    }
-                    writeMethodContentForSerialization(params[i], types[i], writer);
-                }
-            } catch (IOException e) {
-                throw new GeneratorException(e);
+                namespace = getNameSpace(stubClass, method);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            writer.append("        SoapSerializationEnvelope _envelope = " + "new SoapSerializationEnvelope(SoapEnvelope.VER11);\n");
-            writer.append("        _envelope.bodyOut = _client;\n");
-	        writer.append("        _envelope.setOutputSoapObject(_client);\n");
-	        writer.append("        _envelope.dotNet = true;\n");
-	        writer.append("        _envelope.implicitTypes = true;\n");
-	        writer.append("        _envelope.setAddAdornments(false);\n\n");
-
-	        writer.append("        " + HTTP_TRANSPORT + " _ht = new " + HTTP_TRANSPORT + "(" + "Configuration.getWsUrl());\n");
-            writer.append("        _ht.call(soapAction, _envelope);\n\n");
-           // writeReturnValue(method, writer);
-            String soapReturnType = writeConvertSoapReturnType(method);
-            writer.append("        "+soapReturnType+" _ret = null;\n");
-            writer.append("        try {\n");
-            writer.append("             _ret = ("+soapReturnType+") _envelope.getResponse();\n");
-	        writer.append("        } catch (SoapFault soapFault) {\n");
-	        writer.append("             convertToException(soapFault, _envelope);\n");
-            writer.append("             return new Result.Error(soapFault);\n");
-	        writer.append("        }\n\n");
-            writeReturnValue(method, writer);
-	        //writer.append("        return new " + method.getReturnType().getCanonicalName() + "(_ret);\n");
+            writer.append("        return withContext(Dispatchers.IO) {\n");
+            writer.append("                " + stubClientName + "." + method.getName() + "(");
+            writeMethodParameters(method, writer, false);
+            writer.append(")\n");
+            writer.append("        }\n");
+            //writer.append("}\n\n");
         }
 
-	    private String getNameSpace(Class proxyClass, Method method) throws  Exception{
+        private String getNameSpace(Class proxyClass, Method method) throws Exception {
 
-		    Object ob = proxyClass.newInstance();
-		    Field field = proxyClass.getDeclaredField("cachedSerQNames");
-		    field.setAccessible(true);
+            Object ob = proxyClass.newInstance();
+            Field field = proxyClass.getDeclaredField("cachedSerQNames");
+            field.setAccessible(true);
 
-		    Vector value = (Vector)field.get(ob);
+            Vector value = (Vector) field.get(ob);
 
-		    for (Object cachedSerQName : value) {
-			    if(cachedSerQName instanceof QName){
+            for (Object cachedSerQName : value) {
+                if (cachedSerQName instanceof QName) {
 
-				    QName qName = ((QName) cachedSerQName);
-				    //if(qName.getLocalPart().equals(method.getName())){
+                    QName qName = ((QName) cachedSerQName);
+                    //if(qName.getLocalPart().equals(method.getName())){
                     return qName.getNamespaceURI();
-				    //}
-			    }
-		    }
-		    return "";
-	    }
+                    //}
+                }
+            }
+            return "";
+        }
 
         /**
          * Only the array of one dimension is supported.
-         * 
+         *
          * @param param
          * @param type
          * @param writer
          * @throws GeneratorException
          */
-        private void writeMethodContentForSerialization(final String param, final Class <?> type, Writer writer) throws GeneratorException {
+        private void writeMethodContentForSerialization(final String param, final Class<?> type, Writer writer) throws GeneratorException {
             writer.append("        ");
             if (type.isPrimitive()) {
                 writer.append("_client.addProperty(\"" + param + "\", " + param + " + \"\");\n");
@@ -302,27 +289,27 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                             + "org.kobjects.base64.Base64.encode("
                             + param + ")));\n");
                 } else if (type.isArray()) {
-                        writeMethodContentForSerialOfArray(param, type, writer);
+                    writeMethodContentForSerialOfArray(param, type, writer);
                 } else { // other objects
-	                writer.append("PropertyInfo property = new PropertyInfo();\n");
-	                writer.append("        property.setNamespace(NAMESPACE);\n");
-	                writer.append("        property.setName(\"" + param + "\");\n");
-	                writer.append("        property.setValue(" + param + ");\n");
-	                writer.append("        _client.addProperty(property);\n\n");
+                    writer.append("PropertyInfo property = new PropertyInfo();\n");
+                    writer.append("        property.setNamespace(NAMESPACE);\n");
+                    writer.append("        property.setName(\"" + param + "\");\n");
+                    writer.append("        property.setValue(" + param + ");\n");
+                    writer.append("        _client.addProperty(property);\n\n");
                 }
             }
         }
-        
+
         /**
          * Only the array of one dimension is processed to tested the result
          * of generation.
-         * 
+         *
          * @param param
          * @param type
          * @param writer
          * @throws GeneratorException
          */
-        private void writeMethodContentForSerialOfArray(final String param, final Class <?> type, Writer writer) throws GeneratorException {
+        private void writeMethodContentForSerialOfArray(final String param, final Class<?> type, Writer writer) throws GeneratorException {
 
             writer.append("        if (" + param + " != null) {\n");
             writer.append("            int _len = " + param + ".length;\n");
@@ -361,17 +348,17 @@ public final class ServiceClientGenerator extends AbstractGenerator {
 
         /**
          * Array is not supported
-         * 
+         *
          * @param method
          * @param writer
          * @throws GeneratorException
          */
         //TODO: reikia per=i8r4ti ir galbut panaudoti veliau
         private void writeReturnValue(final Method method, Writer writer) throws GeneratorException {
-            Class <?> type = method.getReturnType();
+            Class<?> type = method.getReturnType();
             if (type.equals(void.class)) { // ignore the void type
-            } else if(type.equals(String.class)) {
-                writer.append("        return new Result.Success<"+type.getCanonicalName()+">(_ret.toString());\n");
+            } else if (type.equals(String.class)) {
+                writer.append("        return new Result.Success<" + type.getCanonicalName() + ">(_ret.toString());\n");
             } /*else if (isSupported(type)) { // type is supported
                 writer.append("        return (" + type.getCanonicalName() + ") _envelope.getResponse();\n");
             }*/ else if (type.isPrimitive()) { // primitive type
@@ -390,7 +377,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                 } else if (type.equals(double.class)) {
                     writer.append("        return new Result.Success<>(Double.parseDouble(" + "_ret.toString()));\n");
                 } else { // char
-                    writer.append("        return new Result.Success<"+type.getCanonicalName()+">(_ret.toString().charAt(0));\n");
+                    writer.append("        return new Result.Success<" + type.getCanonicalName() + ">(_ret.toString().charAt(0));\n");
                 }
             } else { // array or object extended on SoapObject
                 if (!type.isArray()) { // object extended on SoapObject
@@ -402,11 +389,11 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                     writer.append("        return _returned;\n");
                 } else { // array
                     writer.append("       if(_ret.getPropertyCount() == 0){\n");
-                    writer.append("       return new Result.Error(new Resources.NotFoundException(\""+ method.getName() +" didn't return any value.\"));\n");
+                    writer.append("       return new Result.Error(new Resources.NotFoundException(\"" + method.getName() + " didn't return any value.\"));\n");
                     writer.append("       }\n");
-                    writer.append("       " + type.getCanonicalName() + " returnArrayObject = new " + type.getCanonicalName().replace("[]","") + "[_ret.getPropertyCount()];\n");
+                    writer.append("       " + type.getCanonicalName() + " returnArrayObject = new " + type.getCanonicalName().replace("[]", "") + "[_ret.getPropertyCount()];\n");
                     writer.append("       for (int rowIndex = 0; rowIndex < _ret.getPropertyCount(); rowIndex++) {\n");
-                    writer.append("       returnArrayObject[rowIndex] = new "+type.getCanonicalName().replace("[]","")+"((SoapObject) _ret.getProperty(rowIndex));\n");
+                    writer.append("       returnArrayObject[rowIndex] = new " + type.getCanonicalName().replace("[]", "") + "((SoapObject) _ret.getProperty(rowIndex));\n");
                     writer.append("       }\n");
                     writer.append("       return new Result.Success<>(returnArrayObject);\n");
                 }
@@ -414,38 +401,21 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         }
 
         /**
-         * Determine is soap object or soap primitive
-         * @param method
-         */
-        private String writeConvertSoapReturnType(final Method method){
-            Class <?> type = method.getReturnType();
-            String soapReturnType = "SoapObject";
-            if (type.equals(void.class)) { // ignore the void type
-            } else if (type.isPrimitive() || type.equals(String.class)){
-                return "SoapPrimitive";
-            }
-
-            return soapReturnType;
-        }
-
-        /**
-         *
-         * @param type
-         *              The class.
+         * @param type The class.
          * @return <tt>true</tt> if the class type is supported, and
          * <tt>false</tt> otherwise.
          */
-        private boolean isSupported(final Class <?> type) {
-            Class <?> [] supported = {String.class,
-		            Long.class,
-		            Integer.class,
+        private boolean isSupported(final Class<?> type) {
+            Class<?>[] supported = {String.class,
+                    Long.class,
+                    Integer.class,
                     Short.class,
-		            Byte.class,
-		            Boolean.class,
-		            Double.class,
+                    Byte.class,
+                    Boolean.class,
+                    Double.class,
                     Float.class};
 
-            for (Class <?> clazz : supported) {
+            for (Class<?> clazz : supported) {
                 if (type.equals(clazz)) {
                     return true;
                 }
@@ -456,8 +426,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         /**
          * Closes the method.
          *
-         * @param writer
-         *              The writer.
+         * @param writer The writer.
          */
         private void writeDoCloseMethod(Writer writer) {
             writer.append("    }\n\n\n");
@@ -490,14 +459,10 @@ public final class ServiceClientGenerator extends AbstractGenerator {
     @Override
     protected void writeImportedClasses(Class<?> clazz, Writer writer) throws GeneratorException {
         Util.checkNull(clazz, writer);
-        writer.append("import android.content.res.Resources;\n");
-        writer.append("import org.ksoap2.SoapEnvelope;\n");
-	    writer.append("import org.ksoap2.SoapFault;\n");
-        writer.append("import org.ksoap2.serialization.SoapObject;\n");
-        writer.append("import org.ksoap2.serialization.SoapPrimitive;\n");
-        writer.append("import org.ksoap2.serialization.SoapSerializationEnvelope;\n");
-        writer.append("import org.ksoap2.transport." + HTTP_TRANSPORT + ";\n");
-	    writer.append("import org.ksoap2.serialization.PropertyInfo;\n");
-	    //writer.append("import " + clazz.getPackage() + ".application.services.Configuration;\n\n");
+
+        writer.append("import com.logicode.golbell.wms.manager.SessionManager\n");
+        writer.append("import kotlinx.coroutines.Dispatchers\n");
+        writer.append("import kotlinx.coroutines.withContext\n");
+        writer.append("\n");
     }
 }

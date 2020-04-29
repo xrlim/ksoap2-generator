@@ -56,6 +56,16 @@ public abstract class AbstractGenerator {
     private String generatedFolder;
 
     /**
+     * The class name for the object
+     */
+    public String className;
+
+    /**
+     * Is Kotlin file
+     */
+    public boolean isKotlin = false;
+
+    /**
      * Public constructor.
      *
      * @param serviceClasses
@@ -70,6 +80,7 @@ public abstract class AbstractGenerator {
         this.writer = writer;
         this.generatedFolder = generatedFolder;
 	    getClassNames(serviceClasses);
+        className =  clazz.getSimpleName();
     }
 
 	private void getClassNames(List<String> classFiles) {
@@ -98,7 +109,11 @@ public abstract class AbstractGenerator {
         writeClass(clazz);
 	    writeCustomMethods(writer);
         writeClassClose();
-        FileManager.createFileInJ2me(clazz, writer, generatedFolder);
+        if(!isKotlin) {
+            FileManager.createFileInJ2me(clazz, writer, generatedFolder, className);
+        }else{
+            FileManager.createFileInKotlin(clazz, writer, generatedFolder, className);
+        }
     }
 
 	protected void writeCustomMethods(Writer writer){
@@ -143,7 +158,11 @@ public abstract class AbstractGenerator {
     protected void writeClassDeclaration(final Class <?> clazz) throws GeneratorException {
         Util.checkNull(clazz);
         writer.append("@SuppressWarnings(\"unchecked\")\n");
-        writer.append("public final class " + clazz.getSimpleName() + " {\n\n");
+        if(!isKotlin) {
+            writer.append("public final class " + className + " {\n\n");
+        }else{
+            writer.append("class " + className + " {\n\n");
+        }
     }
 
     /**

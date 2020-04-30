@@ -297,7 +297,7 @@ public final class FileManager {
         int index = name.lastIndexOf('.');
         if (index < 0) {
             createFolder(generatedFolder);
-            saveFile(generatedFolder + separatorChar + className + ".java",
+            saveFile(generatedFolder + separatorChar + className + ".kt",
                     writer);
         } else {
             String packageName = name.substring(0, index).replace('.',
@@ -327,7 +327,7 @@ public final class FileManager {
         int index = name.lastIndexOf('.');
         if (index < 0) {
             createFolder(generatedFolder);
-            saveFile(generatedFolder + separatorChar + simpleName + ".java",
+            saveFile(generatedFolder + separatorChar + simpleName + ".kt",
                     writer);
         } else {
             String packageName = name.substring(0, index).replace('.',

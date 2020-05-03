@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -44,7 +45,7 @@ import java.util.Vector;
  * @author Cong Kinh Nguyen
  *
  */
-public final class ServiceClientGenerator extends AbstractGenerator {
+public final class SoapServiceClientGenerator extends AbstractGenerator {
 
     /**
      * For J2ME.
@@ -65,11 +66,12 @@ public final class ServiceClientGenerator extends AbstractGenerator {
 
     private Class <?> stubClass;
 
-    public ServiceClientGenerator(final Class<?> clazz, final Class <?> stubClass, Writer writer, final String generatedFolder, List<Operation> operationList) {
+    public SoapServiceClientGenerator(final Class<?> clazz, final Class <?> stubClass, Writer writer, final String generatedFolder, List<Operation> operationList) {
 
-        super(new ArrayList<String>(), clazz, writer, generatedFolder);
+        super(new HashMap<String, Class<?>>(), clazz, writer, generatedFolder);
         this.stubClass = stubClass;
         this.operationList = operationList;
+        nameSpace = clazz.getPackage().getName() + ".soap";
     }
 
     /**
@@ -81,8 +83,8 @@ public final class ServiceClientGenerator extends AbstractGenerator {
      */
     protected void run() throws GeneratorException {
         super.run();
-        FileManager.copyConf(stubClass.getName(), getGeneratedFolder());
-        FileManager.copyResult(stubClass.getName(), getGeneratedFolder());
+        FileManager.copyConf(nameSpace, getGeneratedFolder());
+        FileManager.copyResult(nameSpace, getGeneratedFolder());
     }
 
 	@Override
@@ -165,7 +167,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
          */
         private void writeMethodName(final Method method, Writer writer) throws GeneratorException {
 
-            writer.append("    " + getModifier(method.getModifiers()) + "Result<" + convertObjectType(method.getReturnType()).getCanonicalName() + "> " + method.getName() + "(");
+            writer.append("    " + getModifier(method.getModifiers()) + "Result<" + convertObjectType(method.getReturnType()).getSimpleName() + "> " + method.getName() + "(");
             try {
                 ParamReader pr = new ParamReader(method.getDeclaringClass());
                 String [] params = pr.getParameterNames(method);
@@ -177,9 +179,9 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                     }
                     for (int i = 0; i < len; i++) {
                         if (i == 0) {
-                            writer.append(paramTypes[i].getCanonicalName() + " " + params[i]);
+                            writer.append(paramTypes[i].getSimpleName() + " " + params[i]);
                         } else {
-                            writer.append(", " + paramTypes[i].getCanonicalName() + " " + params[i]);
+                            writer.append(", " + paramTypes[i].getSimpleName() + " " + params[i]);
                         }
                     }
                 }
@@ -257,7 +259,6 @@ public final class ServiceClientGenerator extends AbstractGenerator {
             writer.append("             return new Result.Error(soapFault);\n");
 	        writer.append("        }\n\n");
             writeReturnValue(method, writer);
-	        //writer.append("        return new " + method.getReturnType().getCanonicalName() + "(_ret);\n");
         }
 
 	    private String getNameSpace(Class proxyClass, Method method) throws  Exception{
@@ -371,10 +372,8 @@ public final class ServiceClientGenerator extends AbstractGenerator {
             Class <?> type = method.getReturnType();
             if (type.equals(void.class)) { // ignore the void type
             } else if(type.equals(String.class)) {
-                writer.append("        return new Result.Success<"+type.getCanonicalName()+">(_ret.toString());\n");
-            } /*else if (isSupported(type)) { // type is supported
-                writer.append("        return (" + type.getCanonicalName() + ") _envelope.getResponse();\n");
-            }*/ else if (type.isPrimitive()) { // primitive type
+                writer.append("        return new Result.Success<"+type.getSimpleName()+">(_ret.toString());\n");
+            } else if (type.isPrimitive()) { // primitive type
                 if (type.equals(boolean.class)) {
                     writer.append("        return new Result.Success<>(Boolean.parseBoolean(_ret.toString()));\n");
                 } else if (type.equals(byte.class)) {
@@ -390,12 +389,12 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                 } else if (type.equals(double.class)) {
                     writer.append("        return new Result.Success<>(Double.parseDouble(" + "_ret.toString()));\n");
                 } else { // char
-                    writer.append("        return new Result.Success<"+type.getCanonicalName()+">(_ret.toString().charAt(0));\n");
+                    writer.append("        return new Result.Success<"+type.getSimpleName()+">(_ret.toString().charAt(0));\n");
                 }
             } else { // array or object extended on SoapObject
                 if (!type.isArray()) { // object extended on SoapObject
                     writer.append("        int _len = _ret.getPropertyCount();\n");
-                    writer.append("        " + type.getCanonicalName() + " _returned = new " + type.getCanonicalName() + "();\n");
+                    writer.append("        " + type.getSimpleName() + " _returned = new " + type.getSimpleName() + "();\n");
                     writer.append("        for (int _i = 0; _i < _len; _i++) {\n");
                     writer.append("            _returned.setProperty(_i, _ret.getProperty(_i));");
                     writer.append("        }\n");
@@ -404,9 +403,9 @@ public final class ServiceClientGenerator extends AbstractGenerator {
                     writer.append("       if(_ret.getPropertyCount() == 0){\n");
                     writer.append("       return new Result.Error(new Resources.NotFoundException(\""+ method.getName() +" didn't return any value.\"));\n");
                     writer.append("       }\n");
-                    writer.append("       " + type.getCanonicalName() + " returnArrayObject = new " + type.getCanonicalName().replace("[]","") + "[_ret.getPropertyCount()];\n");
+                    writer.append("       " + type.getSimpleName() + " returnArrayObject = new " + type.getSimpleName().replace("[]","") + "[_ret.getPropertyCount()];\n");
                     writer.append("       for (int rowIndex = 0; rowIndex < _ret.getPropertyCount(); rowIndex++) {\n");
-                    writer.append("       returnArrayObject[rowIndex] = new "+type.getCanonicalName().replace("[]","")+"((SoapObject) _ret.getProperty(rowIndex));\n");
+                    writer.append("       returnArrayObject[rowIndex] = new "+type.getSimpleName().replace("[]","")+"((SoapObject) _ret.getProperty(rowIndex));\n");
                     writer.append("       }\n");
                     writer.append("       return new Result.Success<>(returnArrayObject);\n");
                 }
@@ -479,7 +478,7 @@ public final class ServiceClientGenerator extends AbstractGenerator {
             return Double.class;
         } else if (type == float.class) {
             return Float.class;
-        } else if (type.isArray()) {
+        } else if (type.isArray() && type.getComponentType().isPrimitive()) {
             return convertObjectType(type.getComponentType());
         } else {
             return type;
@@ -498,6 +497,8 @@ public final class ServiceClientGenerator extends AbstractGenerator {
         writer.append("import org.ksoap2.serialization.SoapSerializationEnvelope;\n");
         writer.append("import org.ksoap2.transport." + HTTP_TRANSPORT + ";\n");
 	    writer.append("import org.ksoap2.serialization.PropertyInfo;\n");
+        writer.append("import "+ clazz.getPackage().getName() + ".model.*;\n");
+        writer.append("\n");
 	    //writer.append("import " + clazz.getPackage() + ".application.services.Configuration;\n\n");
     }
 }

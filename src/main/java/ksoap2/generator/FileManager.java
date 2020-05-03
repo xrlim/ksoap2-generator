@@ -1,28 +1,28 @@
 /**
- Ksoap2-generator-stub: the generating to generate web services client using
- ksoap2 (http://ksoap2.sourceforge.net/) in J2ME/CLDC 1.1 and Android
- (http://code.google.com/p/ksoap2-android/).
- 
- Copyright: Copyright (C) 2010
- Contact: kinhnc@gmail.com
-
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or any later version.
-
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- USA 
-
- Initial developer(s): Cong Kinh Nguyen.
- Contributor(s):
+ * Ksoap2-generator-stub: the generating to generate web services client using
+ * ksoap2 (http://ksoap2.sourceforge.net/) in J2ME/CLDC 1.1 and Android
+ * (http://code.google.com/p/ksoap2-android/).
+ * <p>
+ * Copyright: Copyright (C) 2010
+ * Contact: kinhnc@gmail.com
+ * <p>
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or any later version.
+ * <p>
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ * <p>
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ * USA
+ * <p>
+ * Initial developer(s): Cong Kinh Nguyen.
+ * Contributor(s):
  */
 
 package ksoap2.generator;
@@ -43,7 +43,6 @@ import java.util.StringTokenizer;
  * Class to manage the manipulation on the file.
  *
  * @author Cong Kinh Nguyen
- *
  */
 public final class FileManager {
     /**
@@ -65,20 +64,17 @@ public final class FileManager {
     /**
      * The method is used to get all file names from <tt>inputFolder</tt>.
      *
-     * @param inputFolder
-     *              The path to input folder.
+     * @param inputFolder The path to input folder.
      * @return The array of all file names.
-     *
-     * @throws GeneratorException
-     *              The generation exception.
+     * @throws GeneratorException The generation exception.
      */
-    public static List <String> getFileNames(final String inputFolder) throws GeneratorException {
+    public static List<String> getFileNames(final String inputFolder) throws GeneratorException {
         Util.checkNull(inputFolder);
         final File file = new File(inputFolder);
         if (!(file.isFile() || file.isDirectory())) {
             throw new GeneratorException();
         }
-        List <String> filenames = new LinkedList <String>();
+        List<String> filenames = new LinkedList<String>();
         getFileNames(filenames, file);
         return filenames;
     }
@@ -86,17 +82,15 @@ public final class FileManager {
     /**
      * Gets all files and stores them to <tt>files</tt>.
      *
-     * @param filenames
-     *              The chain of file names.
-     * @param file
-     *              The file which contains itself and all the files and
-     *              sub-directories accessed from it.
+     * @param filenames The chain of file names.
+     * @param file      The file which contains itself and all the files and
+     *                  sub-directories accessed from it.
      */
-    private static void getFileNames(List <String> filenames, final File file) {
+    private static void getFileNames(List<String> filenames, final File file) {
         if (file.isFile()) {
             filenames.add(file.getAbsolutePath());
         } else if (file.isDirectory()) {
-            File childFiles [] = file.listFiles();
+            File childFiles[] = file.listFiles();
             for (File childFile : childFiles) {
                 getFileNames(filenames, childFile);
             }
@@ -104,12 +98,9 @@ public final class FileManager {
     }
 
     /**
-     * 
-     * @param input
-     *              The input stream.
+     * @param input The input stream.
      * @return The content of input stream.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @throws GeneratorException The generation exception.
      */
     public static String getContent(final InputStream input) throws GeneratorException {
         Util.checkNull(input);
@@ -128,21 +119,18 @@ public final class FileManager {
     }
 
     /**
-     *
-     * @param fullname
-     *              The full path to file.
+     * @param fullname The full path to file.
      * @return The array of byte for class needed.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @throws GeneratorException The generation exception.
      */
-    public static byte [] loadClassData(final String fullname) throws GeneratorException {
+    public static byte[] loadClassData(final String fullname) throws GeneratorException {
         Util.checkNull(fullname);
         try {
             File file = new File(fullname);
             DataInputStream input = new DataInputStream(new FileInputStream(
                     file));
             int len = (int) file.length();
-            byte data [] = new byte[len];
+            byte data[] = new byte[len];
             int readBytes = 0;
             int totalBytes = 0;
             while (true) {
@@ -164,10 +152,8 @@ public final class FileManager {
      * Creates the folder with given path. It also creates parent folders if
      * necessary.
      *
-     * @param path
-     *              The path. 
-     * @throws GeneratorException
-     *              The generation exception.
+     * @param path The path.
+     * @throws GeneratorException The generation exception.
      */
     public static void createFolder(final String path) throws GeneratorException {
         Util.checkNull(path);
@@ -192,10 +178,8 @@ public final class FileManager {
     /**
      * Removes the given directory.
      *
-     * @param path
-     *              The given directory.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @param path The given directory.
+     * @throws GeneratorException The generation exception.
      */
     public static void removeFolder(final String path) throws GeneratorException {
         Util.checkNull(path);
@@ -203,7 +187,7 @@ public final class FileManager {
         if (file == null) {
             return;
         }
-        File [] listFiles = file.listFiles();
+        File[] listFiles = file.listFiles();
         if (listFiles == null) {
             return;
         }
@@ -222,129 +206,42 @@ public final class FileManager {
     /**
      * Creates file in J2ME.
      *
-     * @param clazz
-     *              The class.
-     * @param writer
-     *              The writer.
-     * @param generatedFolder
-     *              The generated folder.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @param clazz           The class.
+     * @param writer          The writer.
+     * @param generatedFolder The generated folder.
+     * @throws GeneratorException The generation exception.
      */
-    public static void createFileInJ2me(final Class <?> clazz, final Writer writer, final String generatedFolder, final String className) throws GeneratorException {
+    public static void createSourceFile(final Class<?> clazz, final Writer writer, final String generatedFolder, final String className, final String nameSpace, final String fileExtension) throws GeneratorException {
         Util.checkNull(clazz, writer, generatedFolder);
-        String name = clazz.getName();
-        int index = name.lastIndexOf('.');
-        if (index < 0) {
-            createFolder(generatedFolder);
-            saveFile(generatedFolder + separatorChar + className + ".java",
-                    writer);
-        } else {
-            String packageName = name.substring(0, index).replace('.',
-                    separatorChar);
-            String dir = generatedFolder + separatorChar + packageName;
-            createFolder(dir);
-            saveFile(dir + separatorChar + className + ".java", writer);
-        }
-    }
-
-    /**
-     * Creates file in J2ME.
-     *
-     * @param clazz
-     *              The class.
-     * @param writer
-     *              The writer.
-     * @param generatedFolder
-     *              The generated folder.
-     * @throws GeneratorException
-     *              The generation exception.
-     */
-    public static void createFileInJ2me(final Class <?> clazz, final Writer writer, final String generatedFolder) throws GeneratorException {
-        Util.checkNull(clazz, writer, generatedFolder);
-        String name = clazz.getName();
+        String name = clazz.getPackage().getName();
         String simpleName = clazz.getSimpleName();
+
+        //override
+        if (nameSpace != null) {
+            name = nameSpace;
+        }
+
+        if (className != null) {
+            simpleName = className;
+        }
+
         int index = name.lastIndexOf('.');
-        if (index < 0) {
+        if (index < 0) { // root
             createFolder(generatedFolder);
-            saveFile(generatedFolder + separatorChar + simpleName + ".java",
-                    writer);
+            saveFile(generatedFolder + separatorChar + simpleName + "." + fileExtension, writer);
         } else {
-            String packageName = name.substring(0, index).replace('.',
-                    separatorChar);
+            String packageName = name.replace('.',  separatorChar);
             String dir = generatedFolder + separatorChar + packageName;
             createFolder(dir);
-            saveFile(dir + separatorChar + simpleName + ".java", writer);
+            saveFile(dir + separatorChar + simpleName + "." + fileExtension, writer);
         }
     }
-
-
-    /**
-     * Creates file in Kotlin.
-     *
-     * @param clazz
-     *              The class.
-     * @param writer
-     *              The writer.
-     * @param generatedFolder
-     *              The generated folder.
-     * @throws GeneratorException
-     *              The generation exception.
-     */
-    public static void createFileInKotlin(final Class <?> clazz, final Writer writer, final String generatedFolder, final String className) throws GeneratorException {
-        Util.checkNull(clazz, writer, generatedFolder);
-        String name = clazz.getName();
-        int index = name.lastIndexOf('.');
-        if (index < 0) {
-            createFolder(generatedFolder);
-            saveFile(generatedFolder + separatorChar + className + ".kt",
-                    writer);
-        } else {
-            String packageName = name.substring(0, index).replace('.',
-                    separatorChar);
-            String dir = generatedFolder + separatorChar + packageName;
-            createFolder(dir);
-            saveFile(dir + separatorChar + className + ".kt", writer);
-        }
-    }
-
-    /**
-     * Creates file in Kotlin.
-     *
-     * @param clazz
-     *              The class.
-     * @param writer
-     *              The writer.
-     * @param generatedFolder
-     *              The generated folder.
-     * @throws GeneratorException
-     *              The generation exception.
-     */
-    public static void createFileInKotlin(final Class <?> clazz, final Writer writer, final String generatedFolder) throws GeneratorException {
-        Util.checkNull(clazz, writer, generatedFolder);
-        String name = clazz.getName();
-        String simpleName = clazz.getSimpleName();
-        int index = name.lastIndexOf('.');
-        if (index < 0) {
-            createFolder(generatedFolder);
-            saveFile(generatedFolder + separatorChar + simpleName + ".kt",
-                    writer);
-        } else {
-            String packageName = name.substring(0, index).replace('.',
-                    separatorChar);
-            String dir = generatedFolder + separatorChar + packageName;
-            createFolder(dir);
-            saveFile(dir + separatorChar + simpleName + ".kt", writer);
-        }
-    }
-
 
     /**
      * Creates temp file.
      *
      * @return Path to temp file.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @throws GeneratorException The generation exception.
      */
     public static String createTempFile() throws GeneratorException {
         try {
@@ -358,17 +255,14 @@ public final class FileManager {
     /**
      * Creates the Configuration class.
      *
-     * @param serviceName
-     *              The service name.
-     * @param generatedFolder
-     *              The generated folder.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @param nameSpace     The service name.
+     * @param generatedFolder The generated folder.
+     * @throws GeneratorException The generation exception.
      */
-    public static void copyConf(final String serviceName, final String generatedFolder) throws GeneratorException {
+    public static void copyConf(final String nameSpace, final String generatedFolder) throws GeneratorException {
 
-        Util.checkNull(serviceName);
-        int index = serviceName.lastIndexOf('.');
+        Util.checkNull(nameSpace);
+        int index = nameSpace.lastIndexOf('.');
         String insertedPackageName = null;
         String path = null;
         String simpleName = "Configuration.java";
@@ -376,33 +270,29 @@ public final class FileManager {
             insertedPackageName = "";
             path = generatedFolder + separatorChar + simpleName;
         } else {
-            insertedPackageName = "package " + serviceName.substring(0, index) + ";\n";
-            path = generatedFolder + separatorChar + serviceName.substring(0,
-                    index).replace('.', separatorChar) + separatorChar
+            insertedPackageName = "package " + nameSpace + ";\n";
+            path = generatedFolder + separatorChar + nameSpace.replace('.', separatorChar) + separatorChar
                     + simpleName;
         }
         String packageName = "package ksoap2.generator;"; // defined in Conf
         String content = getContent(FileManager.class.getResourceAsStream("Configuration.txt"));
         content = content.replace(packageName, insertedPackageName);
 
-	    createFolder(path.replace(simpleName, ""));
+        createFolder(path.replace(simpleName, ""));
         saveFile(path, content);
     }
 
     /**
      * Creates the Result Kotlin class.
      *
-     * @param serviceName
-     *              The service name.
-     * @param generatedFolder
-     *              The generated folder.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @param nameSpace     The service name.
+     * @param generatedFolder The generated folder.
+     * @throws GeneratorException The generation exception.
      */
-    public static void copyResult(final String serviceName, final String generatedFolder) throws GeneratorException {
+    public static void copyResult(final String nameSpace, final String generatedFolder) throws GeneratorException {
 
-        Util.checkNull(serviceName);
-        int index = serviceName.lastIndexOf('.');
+        Util.checkNull(nameSpace);
+        int index = nameSpace.lastIndexOf('.');
         String insertedPackageName = null;
         String path = null;
         String simpleName = "Result.kt";
@@ -410,9 +300,8 @@ public final class FileManager {
             insertedPackageName = "";
             path = generatedFolder + separatorChar + simpleName;
         } else {
-            insertedPackageName = "package " + serviceName.substring(0, index) + ";\n";
-            path = generatedFolder + separatorChar + serviceName.substring(0,
-                    index).replace('.', separatorChar) + separatorChar
+            insertedPackageName = "package " + nameSpace + ";\n";
+            path = generatedFolder + separatorChar + nameSpace.replace('.', separatorChar) + separatorChar
                     + simpleName;
         }
         String packageName = "package ksoap2.generator;"; // defined in Conf
@@ -425,12 +314,9 @@ public final class FileManager {
 
 
     /**
-     *
-     * @param generatedFolder
-     *              The generated folder.
+     * @param generatedFolder The generated folder.
      * @return Canonical path.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @throws GeneratorException The generation exception.
      */
     public static String getCanonicalPath(final String generatedFolder) throws GeneratorException {
         Util.checkNull(generatedFolder);
@@ -445,12 +331,9 @@ public final class FileManager {
     /**
      * Saves content in <tt>writer</tt> into file of given <tt>path</tt>.
      *
-     * @param path
-     *              The path.
-     * @param writer
-     *              The writer.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @param path   The path.
+     * @param writer The writer.
+     * @throws GeneratorException The generation exception.
      */
     private static void saveFile(final String path, final Writer writer) throws GeneratorException {
         saveFile(path, writer.toString());
@@ -459,12 +342,9 @@ public final class FileManager {
     /**
      * Saves content in <tt>content</tt> into file of given <tt>path</tt>.
      *
-     * @param path
-     *              The path.
-     * @param content
-     *              The content.
-     * @throws GeneratorException
-     *              The generation exception.
+     * @param path    The path.
+     * @param content The content.
+     * @throws GeneratorException The generation exception.
      */
     private static void saveFile(final String path, final String content) throws GeneratorException {
         try {

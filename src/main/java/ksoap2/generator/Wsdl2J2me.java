@@ -47,10 +47,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.rmi.Remote;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -211,6 +208,7 @@ public final class Wsdl2J2me {
             logger.info("web services interface: " + serviceName);
             logger.info("web services proxy: " + proxyClass.getCanonicalName());
 
+            HashMap<String, Class<?>> classHm = new HashMap<>();
             for (String name : names) {
                 int index = name.indexOf(TEMP_GEN_FOLDER);
                 if (index < 0) {
@@ -219,9 +217,15 @@ public final class Wsdl2J2me {
                 String className = name.substring(index + TEMP_GEN_FOLDER.length() + 1).replace(separatorChar, '.');
                 // ignore .java
                 className = className.substring(0, className.length() - filetype.length());
-                Class<?> clazz = loader.loadClass(className);
+                classHm.put(className, loader.loadClass(className));
+            }
+
+            for (Map.Entry<String, Class<?>> classSet : classHm.entrySet()){
+                String className = classSet.getKey();
+                Class<?> clazz = classSet.getValue();
+
                 if (className.equals(serviceName)) {
-                    new WsClientGenerator(names, clazz, proxyClass, true, generatedFolder, operationList).run();
+                    new WsClientGenerator(classHm, clazz, proxyClass, true, generatedFolder, operationList).run();
                 } else {
                     if (javax.xml.rpc.Service.class.isAssignableFrom(clazz)
                             || org.apache.axis.client.Stub.class.isAssignableFrom(clazz)
@@ -230,9 +234,10 @@ public final class Wsdl2J2me {
                         continue;
                     }
                     logger.info("class name to generate code: " + className);
-                    new WsClientGenerator(names, clazz, proxyClass, false, generatedFolder, operationList).run();
+                    new WsClientGenerator(classHm, clazz, proxyClass, false, generatedFolder, operationList).run();
                 }
             }
+
         } catch (MalformedURLException e) {
             throw new GeneratorException(e);
         } catch (ClassNotFoundException e) {
@@ -305,7 +310,7 @@ public final class Wsdl2J2me {
     }
 
     public static void main(String[] args) throws Exception {
-        ServiceClientGenerator.HTTP_TRANSPORT = ServiceClientGenerator.HTTP_TRANSPORT_J2ME;
+        SoapServiceClientGenerator.HTTP_TRANSPORT = SoapServiceClientGenerator.HTTP_TRANSPORT_J2ME;
         InputStream input = Wsdl2J2me.class.getResourceAsStream("logging.properties");
         if (input == null) {
             System.err.println("missing the logging configuration file");

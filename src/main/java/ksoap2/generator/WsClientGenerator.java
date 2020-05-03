@@ -28,6 +28,7 @@
 package ksoap2.generator;
 
 import javax.wsdl.Operation;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -37,7 +38,6 @@ import java.util.List;
  *
  */
 public final class WsClientGenerator {
-
     /**
      * List of WSDL operation
      */
@@ -49,7 +49,7 @@ public final class WsClientGenerator {
 
     private Class <?> stubClass;
 
-	List<String> serviceClasses;
+    HashMap<String, Class<?>> serviceClassesHM;
     /**
      *
      */
@@ -62,12 +62,12 @@ public final class WsClientGenerator {
 
     private Writer writer = new Writer();
 
-    public WsClientGenerator(List<String> serviceClasses, final Class<?> clazz, final Class<?> stubClass, boolean isService, final String generatedFolder, List<Operation> operationList) {
+    public WsClientGenerator(HashMap<String, Class<?>> serviceClassesHM, final Class<?> clazz, final Class<?> stubClass, boolean isService, final String generatedFolder, List<Operation> operationList) {
         this.clazz = clazz;
         this.stubClass = stubClass;
         this.isService = isService;
         this.generatedFolder = generatedFolder;
-	    this.serviceClasses = serviceClasses;
+	    this.serviceClassesHM = serviceClassesHM;
 	    this.operationList = operationList;
     }
 
@@ -84,10 +84,12 @@ public final class WsClientGenerator {
 	    }
 
         if (isService) {
-            new ServiceClientGenerator(clazz, stubClass, writer, generatedFolder, operationList).run();
+            new SoapServiceClientGenerator(clazz, stubClass, writer, generatedFolder, operationList).run();
             new KotlinCoroutineWrapperGenerator(clazz, stubClass, writer, generatedFolder).run();
         } else {
-            new ComplexTypeGenerator(serviceClasses, clazz, writer, generatedFolder).run();
+            new ComplexTypeGenerator(serviceClassesHM, clazz, writer, generatedFolder).run();
+            new KotlinRoomDaoGenerator(serviceClassesHM, clazz, writer, generatedFolder).run();
+            new KotlinRoomDatabaseGenerator(serviceClassesHM, clazz, stubClass, writer, generatedFolder).run();
         }
     }
 

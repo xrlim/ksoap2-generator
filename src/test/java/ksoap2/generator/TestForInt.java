@@ -44,7 +44,7 @@ public final class TestForInt extends AbstractTest {
                 + "generate-test-sources"};
         ClassLoader loader = GeneratorLoader.getLoader();
         Thread.currentThread().setContextClassLoader(loader);
-        ServiceClientGenerator.HTTP_TRANSPORT = ServiceClientGenerator
+        SoapServiceClientGenerator.HTTP_TRANSPORT = SoapServiceClientGenerator
                 .HTTP_TRANSPORT_J2ME;
         new Wsdl2J2me(args).run();
     }

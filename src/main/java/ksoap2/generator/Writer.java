@@ -52,6 +52,10 @@ public final class Writer {
         }
     }
 
+    public void clear(){
+        buffer.setLength(0);
+    }
+
     /**
      * @see Object#toString()
      */

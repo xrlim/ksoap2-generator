@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -44,32 +45,17 @@ import java.util.Vector;
  * @author Cong Kinh Nguyen
  */
 public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
-
-    /**
-     * For J2ME.
-     */
-    public static final String HTTP_TRANSPORT_J2ME = "HttpTransport";
-
-    /**
-     * For Android.
-     */
-    public static final String HTTP_TRANSPORT_ANDROID = "HttpTransportSE";
-
-    /**
-     * The method to perform web services's call
-     */
-    public static String HTTP_TRANSPORT = HTTP_TRANSPORT_J2ME;
-
     private Class<?> stubClass;
 
     private String stubClientName;
 
     public KotlinCoroutineWrapperGenerator(final Class<?> clazz, final Class<?> stubClass, Writer writer, final String generatedFolder) {
-        super(new ArrayList<String>(), clazz, writer, generatedFolder);
+        super(new HashMap<String, Class<?>>(), clazz, writer, generatedFolder);
         this.stubClass = stubClass;
         className = clazz.getSimpleName() + "Async";
         isKotlin = true;
-        stubClientName = clazz.getSimpleName().substring(0, 1).toLowerCase() + clazz.getSimpleName().substring(1);
+        stubClientName = firstLetterLowerCase(clazz.getSimpleName());
+        nameSpace = clazz.getPackage().getName() + ".soap";
     }
 
     /**
@@ -89,12 +75,7 @@ public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
     }
 
     private void writeInit(Writer writer) {
-        writer.append("    private val _sessionManager: SessionManager = sessionManager\n");
         writer.append("    private val " + stubClientName + ": " + getClazz().getSimpleName() + " = " + getClazz().getSimpleName() + "()\n\n");
-        writer.append("    init {\n");
-        writer.append("        val wsURL: String = \"http://\" + _sessionManager.getIpAddress() + \":\" + _sessionManager.getPort() + \"/ws/ims-ws.asmx\"\n");
-        writer.append("        Configuration.setConfiguration(wsURL);\n");
-        writer.append("    }\n\n");
     }
 
     /**
@@ -169,7 +150,7 @@ public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
             writeMethodParameters(method, writer, true);
 
             if (method.getReturnType().isArray()) {
-                writer.append("): " + "Result<Array<" + method.getReturnType().getCanonicalName().replace("[]", "") + ">>? {\n");
+                writer.append("): " + "Result<Array<" + method.getReturnType().getSimpleName().replace("[]", "") + ">>? {\n");
             } else {
                 writer.append("): " + "Result<" + convertObjectType(method.getReturnType()).getSimpleName() + ">? {\n");
             }
@@ -433,6 +414,16 @@ public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
         }
     }
 
+    @Override
+    protected void writeImportedClasses(Class<?> clazz, Writer writer) throws GeneratorException {
+        Util.checkNull(clazz, writer);
+
+        writer.append("import kotlinx.coroutines.Dispatchers\n");
+        writer.append("import kotlinx.coroutines.withContext\n");
+        writer.append("import "+ clazz.getPackage().getName() + ".model.*\n");
+        writer.append("\n");
+    }
+
     private Class<?> convertObjectType(Class<?> type) {
         if (type == boolean.class) {
             return Boolean.class;
@@ -448,21 +439,22 @@ public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
             return Double.class;
         } else if (type == float.class) {
             return Float.class;
-        } else if (type.isArray()) {
+        } else if (type.isArray() && type.getComponentType().isPrimitive()) {
             return convertObjectType(type.getComponentType());
         } else {
             return type;
         }
-
     }
 
-    @Override
-    protected void writeImportedClasses(Class<?> clazz, Writer writer) throws GeneratorException {
-        Util.checkNull(clazz, writer);
-
-        writer.append("import com.logicode.golbell.wms.manager.SessionManager\n");
-        writer.append("import kotlinx.coroutines.Dispatchers\n");
-        writer.append("import kotlinx.coroutines.withContext\n");
-        writer.append("\n");
+    /**
+     * Convert first character to lower case.
+     * @param stringValue
+     * @return
+     */
+    private String firstLetterLowerCase(String stringValue){
+        if(stringValue == null || stringValue == ""){
+            return stringValue;
+        }
+        return stringValue.substring(0, 1).toLowerCase() + stringValue.substring(1);
     }
 }

@@ -36,7 +36,7 @@ package ksoap2.generator;
 public final class Wsdl2Android {
 
     public static void main(String args[]) throws Exception {
-        ServiceClientGenerator.HTTP_TRANSPORT = ServiceClientGenerator.HTTP_TRANSPORT_ANDROID;
+        SoapServiceClientGenerator.HTTP_TRANSPORT = SoapServiceClientGenerator.HTTP_TRANSPORT_ANDROID;
         new Wsdl2J2me(args).run();
     }
 

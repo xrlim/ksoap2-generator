@@ -90,15 +90,16 @@ public final class ComplexTypeGenerator extends AbstractGenerator {
     /**
      * Public constructor.
      *
-     * @param serviceClasses
+     * @param serviceClassesHM
      * @param clazz
      *              The class.
      * @param writer
  *              The writer.
      * @param generatedFolder
      */
-    public ComplexTypeGenerator(List<String> serviceClasses, final Class<?> clazz, Writer writer, final String generatedFolder) {
-        super(serviceClasses, clazz, writer, generatedFolder);
+    public ComplexTypeGenerator(HashMap<String, Class<?>> serviceClassesHM, final Class<?> clazz, Writer writer, final String generatedFolder) {
+        super(serviceClassesHM, clazz, writer, generatedFolder);
+        nameSpace = clazz.getPackage().getName() + ".model";
     }
 
     /**
@@ -134,7 +135,9 @@ public final class ComplexTypeGenerator extends AbstractGenerator {
         Util.checkNull(clazz, writer);
         writer.append("import java.util.Hashtable;\n");
         writer.append("import org.ksoap2.serialization.PropertyInfo;\n");
-        writer.append("import org.ksoap2.serialization.SoapObject;\n\n");
+        writer.append("import org.ksoap2.serialization.SoapObject;\n");
+        writer.append("import androidx.room.Entity;\n");
+        writer.append("import androidx.room.ColumnInfo;\n\n");
     }
 
     /**
@@ -145,11 +148,11 @@ public final class ComplexTypeGenerator extends AbstractGenerator {
      * @throws GeneratorException
      *              The generation exception.
      */
-
     @Override
     protected final void writeClassDeclaration(final Class <?> clazz) throws GeneratorException {
         Writer writer = getWriter();
         Util.checkNull(clazz, writer);
+        writer.append("@Entity\n");
         writer.append("public final class " + clazz.getSimpleName() + " extends SoapObject {\n\n");
     }
 
@@ -169,8 +172,12 @@ public final class ComplexTypeGenerator extends AbstractGenerator {
         Util.checkNull(declaredFields, writer);
         for (Field declaredField : declaredFields) {
             if (!isIgnored(declaredField.getName())) {
+
                 writer.append("    ");
-                writer.append(getModifier(declaredField.getModifiers()) + declaredField.getType().getCanonicalName() + " " + declaredField.getName() + ";\n");
+                writer.append("@ColumnInfo(name = \""+declaredField.getName()+"\")\n");
+                writer.append("    ");
+                //writer.append("public " + declaredField.getType().getCanonicalName() + " " + declaredField.getName() + ";\n");
+                writer.append(getModifier(declaredField.getModifiers()) + declaredField.getType().getSimpleName() + " " + declaredField.getName() + ";\n");
             }
         }
 	    writer.append("\n");
@@ -217,8 +224,8 @@ public final class ComplexTypeGenerator extends AbstractGenerator {
 
 
 	private boolean isServiceClass(String className){
-		for (String serviceClass : serviceClasses) {
-			if(serviceClass.equals(className)){
+		for (Map.Entry<String, Class<?>> serviceClass : serviceClassesHM.entrySet()) {
+			if(serviceClass.getKey().equals(className)){
 				return true;
 			}
 		}
@@ -243,11 +250,11 @@ public final class ComplexTypeGenerator extends AbstractGenerator {
             }
             writer.append("    public void set"
                     + getCapsChar(name.charAt(0)) + name.substring(1) + "("
-                    + attribute.getType().getCanonicalName() + " " + name
+                    + attribute.getType().getSimpleName() + " " + name
                     + ") {\n");
             writer.append("        this." + name + " = " + name + ";\n");
             writer.append("    }\n\n");
-            writer.append("    public " + attribute.getType().getCanonicalName()
+            writer.append("    public " + attribute.getType().getSimpleName()
                     + " get" + getCapsChar(name.charAt(0)) + name.substring(1)
                     + "(" //+ attribute.getType().getCanonicalName() + " " + name
                     + ") {\n");

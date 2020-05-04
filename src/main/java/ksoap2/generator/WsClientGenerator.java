@@ -84,10 +84,11 @@ public final class WsClientGenerator {
 	    }
 
         if (isService) {
-            new SoapServiceClientGenerator(clazz, stubClass, writer, generatedFolder, operationList).run();
-            new KotlinCoroutineWrapperGenerator(clazz, stubClass, writer, generatedFolder).run();
+            new JavaSoapServiceClientGenerator(clazz, stubClass, writer, generatedFolder, operationList).run();
+            new KotlinSoapCoroutineWrapperGenerator(clazz, stubClass, writer, generatedFolder).run();
         } else {
-            new ComplexTypeGenerator(serviceClassesHM, clazz, writer, generatedFolder).run();
+            new KotlinRoomClassGenerator(serviceClassesHM, clazz, writer, generatedFolder).run();
+            new JavaSoapClassGenerator(serviceClassesHM, clazz, writer, generatedFolder).run();
             new KotlinRoomDaoGenerator(serviceClassesHM, clazz, writer, generatedFolder).run();
             new KotlinRoomDatabaseGenerator(serviceClassesHM, clazz, stubClass, writer, generatedFolder).run();
         }

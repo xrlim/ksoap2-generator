@@ -71,6 +71,8 @@ public abstract class AbstractGenerator {
      */
     public boolean isKotlin = false;
 
+
+
     /**
      * Public constructor.
      *
@@ -212,7 +214,7 @@ public abstract class AbstractGenerator {
     /**
      * Outs the class's close.
      */
-    private void writeClassClose() {
+    protected void writeClassClose() {
         writer.append("}\n");
     }
 

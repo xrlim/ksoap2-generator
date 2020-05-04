@@ -310,7 +310,7 @@ public final class Wsdl2J2me {
     }
 
     public static void main(String[] args) throws Exception {
-        SoapServiceClientGenerator.HTTP_TRANSPORT = SoapServiceClientGenerator.HTTP_TRANSPORT_J2ME;
+        JavaSoapServiceClientGenerator.HTTP_TRANSPORT = JavaSoapServiceClientGenerator.HTTP_TRANSPORT_J2ME;
         InputStream input = Wsdl2J2me.class.getResourceAsStream("logging.properties");
         if (input == null) {
             System.err.println("missing the logging configuration file");

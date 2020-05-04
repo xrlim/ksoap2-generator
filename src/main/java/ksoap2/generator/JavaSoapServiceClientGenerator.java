@@ -45,7 +45,7 @@ import java.util.Vector;
  * @author Cong Kinh Nguyen
  *
  */
-public final class SoapServiceClientGenerator extends AbstractGenerator {
+public final class JavaSoapServiceClientGenerator extends AbstractGenerator {
 
     /**
      * For J2ME.
@@ -66,12 +66,17 @@ public final class SoapServiceClientGenerator extends AbstractGenerator {
 
     private Class <?> stubClass;
 
-    public SoapServiceClientGenerator(final Class<?> clazz, final Class <?> stubClass, Writer writer, final String generatedFolder, List<Operation> operationList) {
+    public JavaSoapServiceClientGenerator(final Class<?> clazz, final Class <?> stubClass, Writer writer, final String generatedFolder, List<Operation> operationList) {
 
         super(new HashMap<String, Class<?>>(), clazz, writer, generatedFolder);
         this.stubClass = stubClass;
         this.operationList = operationList;
         nameSpace = clazz.getPackage().getName() + ".soap";
+
+        String replacementName = stubClass.getSimpleName().replace("Stub", "");
+        int index = replacementName.indexOf("_");
+        replacementName = replacementName.replaceFirst("_","");
+        className = toUpperSpecificPosition(replacementName,index);
     }
 
     /**
@@ -188,7 +193,7 @@ public final class SoapServiceClientGenerator extends AbstractGenerator {
             } catch (IOException e) {
                 throw new GeneratorException(e);
             }
-            writer.append(") throws java.lang.Exception {\n");
+            writer.append(") {\n");
         }
 
         /**
@@ -248,15 +253,15 @@ public final class SoapServiceClientGenerator extends AbstractGenerator {
 	        writer.append("        _envelope.setAddAdornments(false);\n\n");
 
 	        writer.append("        " + HTTP_TRANSPORT + " _ht = new " + HTTP_TRANSPORT + "(" + "Configuration.getWsUrl());\n");
-            writer.append("        _ht.call(soapAction, _envelope);\n\n");
-           // writeReturnValue(method, writer);
             String soapReturnType = writeConvertSoapReturnType(method);
             writer.append("        "+soapReturnType+" _ret = null;\n");
             writer.append("        try {\n");
+            writer.append("             _ht.call(soapAction, _envelope);\n");
+           // writeReturnValue(method, writer);
             writer.append("             _ret = ("+soapReturnType+") _envelope.getResponse();\n");
-	        writer.append("        } catch (SoapFault soapFault) {\n");
-	        writer.append("             convertToException(soapFault, _envelope);\n");
-            writer.append("             return new Result.Error(soapFault);\n");
+	        writer.append("        } catch (Exception exception) {\n");
+	        //writer.append("             convertToException(soapFault, _envelope);\n");
+            writer.append("             return new Result.Error(exception);\n");
 	        writer.append("        }\n\n");
             writeReturnValue(method, writer);
         }
@@ -486,6 +491,11 @@ public final class SoapServiceClientGenerator extends AbstractGenerator {
 
     }
 
+    private String toUpperSpecificPosition(String str, int index) {
+        char[] chars = str.toCharArray();
+        return str.substring(0, index) + String.valueOf(chars[index]).toUpperCase() + str.substring(index+1);
+    }
+
     @Override
     protected void writeImportedClasses(Class<?> clazz, Writer writer) throws GeneratorException {
         Util.checkNull(clazz, writer);
@@ -497,8 +507,10 @@ public final class SoapServiceClientGenerator extends AbstractGenerator {
         writer.append("import org.ksoap2.serialization.SoapSerializationEnvelope;\n");
         writer.append("import org.ksoap2.transport." + HTTP_TRANSPORT + ";\n");
 	    writer.append("import org.ksoap2.serialization.PropertyInfo;\n");
-        writer.append("import "+ clazz.getPackage().getName() + ".model.*;\n");
+        writer.append("import "+ clazz.getPackage().getName() + ".soap.model.*;\n");
         writer.append("\n");
 	    //writer.append("import " + clazz.getPackage() + ".application.services.Configuration;\n\n");
     }
+
+
 }

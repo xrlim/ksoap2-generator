@@ -44,7 +44,7 @@ public class TestForByte extends AbstractTest {
                 + "generate-test-sources"};
         ClassLoader loader = GeneratorLoader.getLoader();
         Thread.currentThread().setContextClassLoader(loader);
-        SoapServiceClientGenerator.HTTP_TRANSPORT = SoapServiceClientGenerator
+        JavaSoapServiceClientGenerator.HTTP_TRANSPORT = JavaSoapServiceClientGenerator
                 .HTTP_TRANSPORT_J2ME;
         new Wsdl2J2me(args).run();
     }

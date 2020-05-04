@@ -44,17 +44,24 @@ import java.util.Vector;
  *
  * @author Cong Kinh Nguyen
  */
-public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
+public final class KotlinSoapCoroutineWrapperGenerator extends AbstractGenerator {
     private Class<?> stubClass;
 
     private String stubClientName;
 
-    public KotlinCoroutineWrapperGenerator(final Class<?> clazz, final Class<?> stubClass, Writer writer, final String generatedFolder) {
+    private String stubClientType;
+
+    public KotlinSoapCoroutineWrapperGenerator(final Class<?> clazz, final Class<?> stubClass, Writer writer, final String generatedFolder) {
         super(new HashMap<String, Class<?>>(), clazz, writer, generatedFolder);
         this.stubClass = stubClass;
-        className = clazz.getSimpleName() + "Async";
+
+        String replacementName = clazz.getSimpleName().replace("Stub", "");
+        int index = replacementName.indexOf("_");
+        replacementName = replacementName.replaceFirst("_","");
+        className = toUpperSpecificPosition(replacementName,index)+ "Async";
         isKotlin = true;
-        stubClientName = firstLetterLowerCase(clazz.getSimpleName());
+        stubClientName = firstLetterLowerCase(toUpperSpecificPosition(replacementName,index));
+        stubClientType = toUpperSpecificPosition(replacementName,index);
         nameSpace = clazz.getPackage().getName() + ".soap";
     }
 
@@ -75,7 +82,7 @@ public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
     }
 
     private void writeInit(Writer writer) {
-        writer.append("    private val " + stubClientName + ": " + getClazz().getSimpleName() + " = " + getClazz().getSimpleName() + "()\n\n");
+        writer.append("    private val " + stubClientName + ": " + stubClientType + " = " + stubClientType + "()\n\n");
     }
 
     /**
@@ -420,7 +427,7 @@ public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
 
         writer.append("import kotlinx.coroutines.Dispatchers\n");
         writer.append("import kotlinx.coroutines.withContext\n");
-        writer.append("import "+ clazz.getPackage().getName() + ".model.*\n");
+        writer.append("import "+ clazz.getPackage().getName() + ".soap.model.*\n");
         writer.append("\n");
     }
 
@@ -456,5 +463,10 @@ public final class KotlinCoroutineWrapperGenerator extends AbstractGenerator {
             return stringValue;
         }
         return stringValue.substring(0, 1).toLowerCase() + stringValue.substring(1);
+    }
+
+    private String toUpperSpecificPosition(String str, int index) {
+        char[] chars = str.toCharArray();
+        return str.substring(0, index) + String.valueOf(chars[index]).toUpperCase() + str.substring(index+1);
     }
 }

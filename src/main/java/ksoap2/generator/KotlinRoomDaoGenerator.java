@@ -95,7 +95,7 @@ public final class KotlinRoomDaoGenerator extends AbstractGenerator {
     private void writeTransactionMethod(Class<?> clazz) {
         Writer writer = getWriter();
         writer.append("    @Transaction\n");
-        writer.append("    suspend fun syncData(" + firstLetterLowerCase(clazz.getSimpleName()) + "s: Array<" + clazz.getSimpleName() + ">){\n");
+        writer.append("    fun syncData(" + firstLetterLowerCase(clazz.getSimpleName()) + "s: List<" + clazz.getSimpleName() + ">){\n");
         writer.append("        deleteAll()\n");
         writer.append("        insertRange(" + firstLetterLowerCase(clazz.getSimpleName()) + "s)\n");
         writer.append("    }\n\n");
@@ -107,7 +107,7 @@ public final class KotlinRoomDaoGenerator extends AbstractGenerator {
 
         // Write ordinary select method
         writer.append("    @Query(\"SELECT * FROM " + clazz.getSimpleName() + "\")\n");
-        writer.append("    suspend fun selectAll(): LiveData<Array<" + clazz.getSimpleName() + ">>\n\n");
+        writer.append("    fun selectAll(): List<" + clazz.getSimpleName() + ">\n\n");
 
         Field[] attributes = clazz.getDeclaredFields();
         if (attributes == null) {
@@ -124,16 +124,16 @@ public final class KotlinRoomDaoGenerator extends AbstractGenerator {
                 continue;
             }
             // Write select single with id
-            writer.append("    @Query(\"SELECT * FROM " + clazz.getSimpleName() + " WHERE " + name + " = :" + name + "\")\n");
-            writer.append("    suspend fun selectSingleBy(" + name + ": " + type + "): LiveData<" + clazz.getSimpleName() + ">\n\n");
+            writer.append("    @Query(\"SELECT * FROM " + clazz.getSimpleName() + " WHERE " + name + " = :" + name + " LIMIT 1\")\n");
+            writer.append("    fun selectSingleBy(" + name + ": " + type + "):" + clazz.getSimpleName() + "\n\n");
 
             // Write select all with id
             writer.append("    @Query(\"SELECT * FROM " + clazz.getSimpleName() + " WHERE " + name + " = :" + name + "\")\n");
-            writer.append("    suspend fun selectAllBy(" + name + ": " + type + "): LiveData<Array<" + clazz.getSimpleName() + ">>\n\n");
+            writer.append("    fun selectAllBy(" + name + ": " + type + "): List<" + clazz.getSimpleName() + ">\n\n");
 
             // Write select with array of id
             writer.append("    @Query(\"SELECT * FROM " + clazz.getSimpleName() + " WHERE " + name + " IN (:" + name + ")\")\n");
-            writer.append("    suspend fun selectAllByRange(" + name + ": Array<" + type + ">): LiveData<Array<" + clazz.getSimpleName() + ">>\n\n");
+            writer.append("    fun selectAllByRange(" + name + ": List<" + type + ">): List<" + clazz.getSimpleName() + ">\n\n");
             // break after this to assume that first attribute is the unique key value.
             break;
         }
@@ -159,7 +159,7 @@ public final class KotlinRoomDaoGenerator extends AbstractGenerator {
             }
             // Is single item exists
             writer.append("    @Query(\"SELECT EXISTS(SELECT 1 FROM " + clazz.getSimpleName() + " WHERE " + name + " = :" + name + ")\")\n");
-            writer.append("    suspend fun isExists(" + name + ": " + type + "): LiveData<Boolean>\n\n");
+            writer.append("    fun isExists(" + name + ": " + type + "): Boolean\n\n");
             // break after this to assume that first attribute is the unique key value.
             break;
         }
@@ -168,43 +168,43 @@ public final class KotlinRoomDaoGenerator extends AbstractGenerator {
     private void writeInsertMethod(final Class<?> clazz) {
         Writer writer = getWriter();
         writer.append("    @Insert(onConflict = OnConflictStrategy.REPLACE)\n");
-        writer.append("    suspend fun insert(" + firstLetterLowerCase(clazz.getSimpleName()) + ": " + clazz.getSimpleName() + "): Long\n\n");
+        writer.append("    fun insert(" + firstLetterLowerCase(clazz.getSimpleName()) + ": " + clazz.getSimpleName() + "): Long\n\n");
 
         writer.append("    @Insert(onConflict = OnConflictStrategy.REPLACE)\n");
-        writer.append("    suspend fun insertRange(" + firstLetterLowerCase(clazz.getSimpleName()) + "s: Array<" + clazz.getSimpleName() + ">): Long\n\n");
+        writer.append("    fun insertRange(" + firstLetterLowerCase(clazz.getSimpleName()) + "s: List<" + clazz.getSimpleName() + ">)\n\n");
     }
 
     private void writeDeleteMethod(final Class<?> clazz) {
         Writer writer = getWriter();
         // Delete Single
         writer.append("    @Delete\n");
-        writer.append("    suspend fun delete(" + firstLetterLowerCase(clazz.getSimpleName()) + ": " + clazz.getSimpleName() + ")\n\n");
+        writer.append("    fun delete(" + firstLetterLowerCase(clazz.getSimpleName()) + ": " + clazz.getSimpleName() + ")\n\n");
 
         // Delete Many
         writer.append("    @Delete\n");
-        writer.append("    suspend fun deleteRange(" + firstLetterLowerCase(clazz.getSimpleName()) + "s: Array<" + clazz.getSimpleName() + ">)\n\n");
+        writer.append("    fun deleteRange(" + firstLetterLowerCase(clazz.getSimpleName()) + "s: List<" + clazz.getSimpleName() + ">)\n\n");
 
         // Delete All
-        writer.append("    @Delete\n");
-        writer.append("    suspend fun deleteAll()\n\n");
+        writer.append("    @Query(\"DELETE FROM "+clazz.getSimpleName()+"\")\n");
+        writer.append("    fun deleteAll()\n\n");
     }
 
     private void writeCountMethod(Class<?> clazz) {
         Writer writer = getWriter();
         // Count
         writer.append("    @Query(\"SELECT COUNT(*) FROM " + clazz.getSimpleName() + "\")\n");
-        writer.append("    suspend fun count(): LiveData<Int>\n\n");
+        writer.append("    fun count(): Int\n\n");
     }
 
     private void writeUpdateMethod(Class<?> clazz) {
         Writer writer = getWriter();
         // Update
         writer.append("    @Update\n");
-        writer.append("    suspend fun update(" + firstLetterLowerCase(clazz.getSimpleName()) + ": " + clazz.getSimpleName() + "): LiveData<Int>\n\n");
+        writer.append("    fun update(" + firstLetterLowerCase(clazz.getSimpleName()) + ": " + clazz.getSimpleName() + "): Int\n\n");
 
         // Update Range
         writer.append("    @Update\n");
-        writer.append("    suspend fun updateRange(" + firstLetterLowerCase(clazz.getSimpleName()) + "s: Array<" + clazz.getSimpleName() + ">): LiveData<Int>\n\n");
+        writer.append("    fun updateRange(" + firstLetterLowerCase(clazz.getSimpleName()) + "s: List<" + clazz.getSimpleName() + ">): Int\n\n");
     }
 
 
@@ -216,7 +216,7 @@ public final class KotlinRoomDaoGenerator extends AbstractGenerator {
         Util.checkNull(clazz, writer);
         writer.append("import androidx.lifecycle.LiveData\n");
         writer.append("import androidx.room.*\n");
-        writer.append("import " + clazz.getPackage().getName() + ".model.*\n");
+        writer.append("import " + clazz.getPackage().getName() + ".room.model.*\n");
     }
 
     /**

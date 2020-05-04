@@ -49,7 +49,12 @@ public final class KotlinRoomDatabaseGenerator extends AbstractGenerator {
     public KotlinRoomDatabaseGenerator(HashMap<String, Class<?>> serviceClassesHM, final Class<?> clazz, final Class<?> stubClass, Writer writer, final String generatedFolder) {
         super(serviceClassesHM, clazz, writer, generatedFolder);
         this.stubClass = stubClass;
-        className = stubClass.getSimpleName().replace("Stub", "") + "Database";
+        String replacementName = stubClass.getSimpleName().replace("Stub", "");
+        int index = replacementName.indexOf("_");
+        replacementName = replacementName.replaceFirst("_","");
+        className = toUpperSpecificPosition(replacementName,index) + "Database";
+
+        //className = stubClass.getSimpleName().replace("Stub", "") + "Database";
         isKotlin = true;
         stubClientName = firstLetterLowerCase(stubClass.getSimpleName().replace("Stub", ""));
         nameSpace = clazz.getPackage().getName() + ".room";
@@ -143,7 +148,7 @@ public final class KotlinRoomDatabaseGenerator extends AbstractGenerator {
         writer.append("import androidx.sqlite.db.SupportSQLiteDatabase\n");
         writer.append("import androidx.work.OneTimeWorkRequestBuilder\n");
         writer.append("import androidx.work.WorkManager\n");
-        writer.append("import " + clazz.getPackage().getName() + ".model.*\n");
+        writer.append("import " + clazz.getPackage().getName() + ".room.model.*\n");
         writer.append("import " + clazz.getPackage().getName() + ".room.dao.*\n");
         writer.append("\n");
     }
@@ -188,10 +193,10 @@ public final class KotlinRoomDatabaseGenerator extends AbstractGenerator {
             }
 
             if (isFirst) {
-                writer.append(clazz.getSimpleName() + "Dao::class");
+                writer.append(clazz.getSimpleName() + "::class");
                 isFirst = false;
             } else {
-                writer.append(", " + clazz.getSimpleName() + "Dao::class");
+                writer.append(", " + clazz.getSimpleName() + "::class");
             }
         }
     }
@@ -230,5 +235,11 @@ public final class KotlinRoomDatabaseGenerator extends AbstractGenerator {
             return stringValue;
         }
         return stringValue.substring(0, 1).toLowerCase() + stringValue.substring(1);
+    }
+
+
+    private String toUpperSpecificPosition(String str, int index) {
+        char[] chars = str.toCharArray();
+        return str.substring(0, index) + String.valueOf(chars[index]).toUpperCase() + str.substring(index+1);
     }
 }

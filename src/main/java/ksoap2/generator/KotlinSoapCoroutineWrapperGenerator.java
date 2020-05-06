@@ -335,60 +335,6 @@ public final class KotlinSoapCoroutineWrapperGenerator extends AbstractGenerator
         }
 
         /**
-         * Array is not supported
-         *
-         * @param method
-         * @param writer
-         * @throws GeneratorException
-         */
-        //TODO: reikia per=i8r4ti ir galbut panaudoti veliau
-        private void writeReturnValue(final Method method, Writer writer) throws GeneratorException {
-            Class<?> type = method.getReturnType();
-            if (type.equals(void.class)) { // ignore the void type
-            } else if (type.equals(String.class)) {
-                writer.append("        return new Result.Success<" + type.getCanonicalName() + ">(_ret.toString());\n");
-            } /*else if (isSupported(type)) { // type is supported
-                writer.append("        return (" + type.getCanonicalName() + ") _envelope.getResponse();\n");
-            }*/ else if (type.isPrimitive()) { // primitive type
-                if (type.equals(boolean.class)) {
-                    writer.append("        return new Result.Success<>(Boolean.parseBoolean(_ret.toString()));\n");
-                } else if (type.equals(byte.class)) {
-                    writer.append("        return new Result.Success<>(Byte.parseByte(" + "_ret.toString()));\n");
-                } else if (type.equals(short.class)) {
-                    writer.append("        return new Result.Success<>(Short.parseShort(" + "_ret.toString()));\n");
-                } else if (type.equals(int.class)) {
-                    writer.append("        return new Result.Success<>(Integer.parseInt(" + "_ret.toString()));\n");
-                } else if (type.equals(long.class)) {
-                    writer.append("        return new Result.Success<>(Long.parseLong(" + "_ret.toString()));\n");
-                } else if (type.equals(float.class)) {
-                    writer.append("        return new Result.Success<>(Float.parseFloat(" + "_ret.toString()));\n");
-                } else if (type.equals(double.class)) {
-                    writer.append("        return new Result.Success<>(Double.parseDouble(" + "_ret.toString()));\n");
-                } else { // char
-                    writer.append("        return new Result.Success<" + type.getCanonicalName() + ">(_ret.toString().charAt(0));\n");
-                }
-            } else { // array or object extended on SoapObject
-                if (!type.isArray()) { // object extended on SoapObject
-                    writer.append("        int _len = _ret.getPropertyCount();\n");
-                    writer.append("        " + type.getCanonicalName() + " _returned = new " + type.getCanonicalName() + "();\n");
-                    writer.append("        for (int _i = 0; _i < _len; _i++) {\n");
-                    writer.append("            _returned.setProperty(_i, _ret.getProperty(_i));");
-                    writer.append("        }\n");
-                    writer.append("        return _returned;\n");
-                } else { // array
-                    writer.append("       if(_ret.getPropertyCount() == 0){\n");
-                    writer.append("       return new Result.Error(new Resources.NotFoundException(\"" + method.getName() + " didn't return any value.\"));\n");
-                    writer.append("       }\n");
-                    writer.append("       " + type.getCanonicalName() + " returnArrayObject = new " + type.getCanonicalName().replace("[]", "") + "[_ret.getPropertyCount()];\n");
-                    writer.append("       for (int rowIndex = 0; rowIndex < _ret.getPropertyCount(); rowIndex++) {\n");
-                    writer.append("       returnArrayObject[rowIndex] = new " + type.getCanonicalName().replace("[]", "") + "((SoapObject) _ret.getProperty(rowIndex));\n");
-                    writer.append("       }\n");
-                    writer.append("       return new Result.Success<>(returnArrayObject);\n");
-                }
-            }
-        }
-
-        /**
          * @param type The class.
          * @return <tt>true</tt> if the class type is supported, and
          * <tt>false</tt> otherwise.

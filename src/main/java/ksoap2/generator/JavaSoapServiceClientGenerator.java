@@ -405,9 +405,9 @@ public final class JavaSoapServiceClientGenerator extends AbstractGenerator {
                     writer.append("        }\n");
                     writer.append("        return _returned;\n");
                 } else { // array
-                    writer.append("       if(_ret.getPropertyCount() == 0){\n");
-                    writer.append("       return new Result.Error(new Resources.NotFoundException(\""+ method.getName() +" didn't return any value.\"));\n");
-                    writer.append("       }\n");
+                    //writer.append("       if(_ret.getPropertyCount() == 0){\n");
+                    //writer.append("       return new Result.Error(new Resources.NotFoundException(\""+ method.getName() +" didn't return any value.\"));\n");
+                    //writer.append("       }\n");
                     writer.append("       " + type.getSimpleName() + " returnArrayObject = new " + type.getSimpleName().replace("[]","") + "[_ret.getPropertyCount()];\n");
                     writer.append("       for (int rowIndex = 0; rowIndex < _ret.getPropertyCount(); rowIndex++) {\n");
                     writer.append("       returnArrayObject[rowIndex] = new "+type.getSimpleName().replace("[]","")+"((SoapObject) _ret.getProperty(rowIndex));\n");

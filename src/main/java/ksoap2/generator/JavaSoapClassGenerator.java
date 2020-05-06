@@ -171,8 +171,8 @@ public final class JavaSoapClassGenerator extends AbstractGenerator {
             if (!isIgnored(declaredField.getName())) {
 
                 writer.append("    ");
-                //writer.append("public " + declaredField.getType().getSimpleName() + " " + declaredField.getName() + ";\n");
-                writer.append(getModifier(declaredField.getModifiers()) + declaredField.getType().getSimpleName() + " " + declaredField.getName() + ";\n");
+                writer.append("public " + declaredField.getType().getSimpleName() + " " + declaredField.getName() + ";\n");
+                //writer.append(getModifier(declaredField.getModifiers()) + declaredField.getType().getSimpleName() + " " + declaredField.getName() + ";\n");
             }
         }
         writer.append("\n");
